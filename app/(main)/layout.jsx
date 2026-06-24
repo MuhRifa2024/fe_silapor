@@ -15,10 +15,22 @@ export default function MainLayout({ children }) {
     setIsMounted(true);
     const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-    
-    // BYPASS LOGIN UNTUK PREVIEW SEMENTARA
-    setUser(storedUser ? JSON.parse(storedUser) : { username: "Admin Preview", role: "admin" });
-  }, []);
+
+    if (!token || !storedUser || storedUser === "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      router.replace("/login");
+      return;
+    }
+
+    try {
+      setUser(JSON.parse(storedUser));
+    } catch (error) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      router.replace("/login");
+    }
+  }, [router]);
 
   if (!isMounted || !user) {
     return <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950">Memuat...</div>;

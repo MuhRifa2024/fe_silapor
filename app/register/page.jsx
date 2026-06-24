@@ -11,6 +11,8 @@ import { Button } from "@/components/atoms/button";
 import { Input } from "@/components/atoms/input";
 import { Label } from "@/components/atoms/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/atoms/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/atoms/select";
+import { Controller } from "react-hook-form";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -27,17 +29,20 @@ export default function RegisterPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      role: "mahasiswa"
+    }
   });
 
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      // Mocking
-      // await registerUser(data);
+      await registerUser(data);
       toast.success("Registrasi berhasil! Silakan login.");
       router.push("/login");
     } catch (error) {
@@ -98,6 +103,25 @@ export default function RegisterPage() {
                   {...register("password")}
                 />
                 {errors.password && <p className="text-red-400 text-sm">{errors.password.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role" className="text-slate-300">Daftar Sebagai (Role)</Label>
+                <Controller
+                  name="role"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value || "mahasiswa"}>
+                      <SelectTrigger className="bg-slate-800/50 border-slate-700 text-slate-100">
+                        <SelectValue placeholder="Pilih Peran" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mahasiswa">Mahasiswa</SelectItem>
+                        <SelectItem value="petugas">Petugas</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
               <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white" disabled={isLoading}>
                 {isLoading ? "Memproses..." : "Daftar"}

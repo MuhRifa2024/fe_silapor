@@ -2,88 +2,141 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, FileText, Settings, Users, ClipboardList, PlusCircle, X, Hexagon } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Settings, Users, BarChart3, PlusCircle, Hexagon, X } from "lucide-react";
 
 export default function Sidebar({ user, isOpen, setIsOpen }) {
   const pathname = usePathname();
+  const isAdmin = user?.role === "admin";
+  const isPetugas = user?.role === "petugas";
+  const isMahasiswa = user?.role === "mahasiswa" || !user?.role;
 
-  // Definisi Menu Berdasarkan Role
-  const menuConfig = {
-    admin: [
-      { name: "Dashboard", href: "/dashboard", icon: Home },
-      { name: "Semua Laporan", href: "/laporan", icon: ClipboardList },
-      { name: "Kategori", href: "/admin/kategori", icon: Settings },
-      { name: "Statistik", href: "/admin/statistik", icon: FileText },
-      { name: "Petugas", href: "/admin/petugas", icon: Users },
-    ],
-    petugas: [
-      { name: "Dashboard", href: "/dashboard", icon: Home },
-      { name: "Tugas Saya", href: "/laporan/tugas", icon: ClipboardList },
-    ],
-    mahasiswa: [
-      { name: "Dashboard", href: "/dashboard", icon: Home },
-      { name: "Buat Laporan", href: "/laporan/baru", icon: PlusCircle },
-      { name: "Riwayat Laporanku", href: "/laporan", icon: ClipboardList },
-    ],
+  // Configuration for Menu Sections
+  const menuSections = [];
+
+  if (isAdmin) {
+    menuSections.push({
+      title: "Menu Utama",
+      items: [
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { name: "Semua Laporan", href: "/laporan", icon: ClipboardList, badge: "5" },
+      ]
+    });
+    menuSections.push({
+      title: "Manajemen",
+      items: [
+        { name: "Kelola Pengguna", href: "/admin/petugas", icon: Users },
+        { name: "Kelola Kategori", href: "/admin/kategori", icon: Settings },
+        { name: "Statistik", href: "/admin/statistik", icon: BarChart3 },
+      ]
+    });
+  } else if (isPetugas) {
+    menuSections.push({
+      title: "Menu Utama",
+      items: [
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { name: "Tugas Saya", href: "/laporan/tugas", icon: ClipboardList },
+      ]
+    });
+  } else {
+    menuSections.push({
+      title: "Menu Utama",
+      items: [
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { name: "Buat Laporan", href: "/laporan/baru", icon: PlusCircle },
+        { name: "Riwayat Laporanku", href: "/laporan", icon: ClipboardList },
+      ]
+    });
+  }
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+    return name.substring(0, 2).toUpperCase();
   };
-
-  const menuList = menuConfig[user?.role] || [];
 
   return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden" 
+          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm" 
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar Content */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r shadow-sm transform transition-transform duration-200 ease-in-out flex flex-col ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-card text-muted-foreground border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0 md:static md:w-64`}
       >
-        <div className="h-16 flex items-center justify-between px-6 border-b">
-          <Link href="/dashboard" className="flex items-center gap-2 font-bold text-xl text-ulbi-blue">
-            <Hexagon className="h-6 w-6 text-ulbi-orange fill-ulbi-orange" />
-            <span>SiLapor</span>
+        <div className="h-20 flex items-center justify-between px-6 border-b border-border">
+          <Link href="/dashboard" className="flex flex-col">
+            <span className="font-bold text-2xl tracking-tight flex items-center gap-2">
+              <span className="text-[#f25922]">Si</span><span className="text-primary">Lapor</span>
+            </span>
+            <div className="mt-1">
+              <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold capitalize">
+                {user?.role || "User"}
+              </span>
+            </div>
           </Link>
           <button 
             onClick={() => setIsOpen(false)} 
-            className="md:hidden text-slate-500 hover:text-slate-700"
+            className="md:hidden text-muted-foreground hover:text-foreground"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4">
-          <nav className="space-y-1 px-3">
-            {menuList.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-ulbi-blue text-white"
-                      : "text-slate-700 dark:text-slate-300 hover:bg-ulbi-blue/10 hover:text-ulbi-blue"
-                  }`}
-                  onClick={() => setIsOpen(false)} // Tutup menu di mobile saat diklik
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.name}
-                </Link>
-              );
-            })}
-          </nav>
+        <div className="flex-1 overflow-y-auto py-6 custom-scrollbar">
+          {menuSections.map((section, idx) => (
+            <div key={idx} className="mb-8">
+              <h3 className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+                {section.title}
+              </h3>
+              <nav className="space-y-1 px-3">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        isActive
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className={`h-5 w-5 ${isActive ? "text-primary-foreground" : ""}`} />
+                        {item.name}
+                      </div>
+                      {item.badge && (
+                        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-background text-[10px] font-bold text-foreground shadow-sm">
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          ))}
         </div>
 
-        <div className="p-4 border-t text-xs text-center text-slate-500">
-          &copy; 2026 SiLapor
+        {/* User Profile at Bottom */}
+        <div className="p-4 border-t border-border bg-muted/50">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
+              {getInitials(user?.username)}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-semibold text-foreground truncate capitalize">{user?.username}</span>
+              <span className="text-xs text-muted-foreground truncate capitalize">Administrator</span>
+            </div>
+          </div>
         </div>
       </aside>
     </>

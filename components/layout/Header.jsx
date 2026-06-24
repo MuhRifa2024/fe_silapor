@@ -4,6 +4,8 @@ import { Menu, LogOut, User } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { useRouter } from "next/navigation";
 
+import { ThemeToggle } from "@/components/atoms/theme-toggle";
+
 export default function Header({ user, setIsOpen }) {
   const router = useRouter();
 
@@ -22,8 +24,9 @@ export default function Header({ user, setIsOpen }) {
         <Menu className="h-6 w-6" />
       </button>
 
-      <div className="ml-auto flex items-center gap-4">
-        <div className="flex items-center gap-2 text-sm font-medium border-r pr-4 border-slate-200 dark:border-slate-700">
+      <div className="ml-auto flex items-center gap-2 sm:gap-4">
+        <ThemeToggle />
+        <div className="flex items-center gap-2 text-sm font-medium border-l border-r px-4 sm:px-4 border-slate-200 dark:border-slate-700">
           <User className="h-4 w-4 text-ulbi-orange" />
           <span className="capitalize">{user?.username} ({user?.role})</span>
         </div>

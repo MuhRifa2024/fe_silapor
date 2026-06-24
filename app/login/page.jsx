@@ -34,15 +34,9 @@ export default function LoginPage() {
   const onSubmit = async (data) => {
     setIsLoading(true);
     try {
-      // Mocking for testing UI since backend may not be available yet
-      // const response = await loginUser(data);
-      // localStorage.setItem("token", response.token);
-      // localStorage.setItem("user", JSON.stringify(response.user));
-      
-      // MOCK SUCCESS
-      localStorage.setItem("token", "mock-token");
-      localStorage.setItem("user", JSON.stringify({ role: "mahasiswa", username: data.username }));
-      
+      const response = await loginUser(data);
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
       toast.success("Login berhasil!");
       router.push("/dashboard");
     } catch (error) {
