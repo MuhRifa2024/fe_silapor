@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { Download, AlertTriangle, Zap, Droplet, Monitor } from "lucide-react";
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { getAdminDashboardStats } from "@/services/adminService";
 import { toast } from "sonner";
@@ -10,10 +10,6 @@ import { toast } from "sonner";
 export function AdminDashboard({ user }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
 
   const fetchStats = async () => {
     try {
@@ -27,6 +23,10 @@ export function AdminDashboard({ user }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
   const getCategoryIcon = (categoryName) => {
     const name = categoryName?.toLowerCase() || "";
@@ -58,10 +58,6 @@ export function AdminDashboard({ user }) {
             Pantau seluruh sistem
           </p>
         </div>
-        
-        <Button variant="outline" className="bg-card border-border text-foreground hover:bg-muted transition-colors">
-          <Download className="w-4 h-4 mr-2" /> Unduh Laporan
-        </Button>
       </div>
 
       {data.dieskalasi > 0 && (

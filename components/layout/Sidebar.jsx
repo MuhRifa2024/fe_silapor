@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ClipboardList, Settings, Users, BarChart3, PlusCircle, Hexagon, X } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Settings, Users, BarChart3, PlusCircle, FileText, UserCircle, X, History } from "lucide-react";
 
 export default function Sidebar({ user, isOpen, setIsOpen }) {
   const pathname = usePathname();
@@ -24,32 +24,35 @@ export default function Sidebar({ user, isOpen, setIsOpen }) {
     menuSections.push({
       title: "Manajemen",
       items: [
-        { name: "Kelola Pengguna", href: "/admin/petugas", icon: Users },
-        { name: "Kelola Kategori", href: "/admin/kategori", icon: Settings },
-        { name: "Statistik", href: "/admin/statistik", icon: BarChart3 },
+        { name: "Kelola Pengguna", href: "/kelola-pengguna", icon: Users },
+        { name: "Kelola Kategori", href: "/kelola-kategori", icon: Settings },
+        { name: "Statistik", href: "/statistik", icon: BarChart3 },
       ]
     });
   } else if (isPetugas) {
     menuSections.push({
-      title: "Menu Utama",
+      title: "Menu",
       items: [
         { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { name: "Tugas Saya", href: "/laporan/tugas", icon: ClipboardList },
+        { name: "Tugas Saya", href: "/tugas", icon: ClipboardList },
+        { name: "Riwayat Selesai", href: "/riwayat-selesai", icon: History },
+        { name: "Profil Saya", href: "/profil", icon: UserCircle },
       ]
     });
   } else {
     menuSections.push({
-      title: "Menu Utama",
+      title: "Menu",
       items: [
         { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { name: "Buat Laporan", href: "/laporan/baru", icon: PlusCircle },
-        { name: "Riwayat Laporanku", href: "/laporan", icon: ClipboardList },
+        { name: "Laporan Saya", href: "/laporan", icon: ClipboardList },
+        { name: "Buat Laporan", href: "/laporan/buat", icon: PlusCircle },
+        { name: "Profil Saya", href: "/profil", icon: UserCircle },
       ]
     });
   }
 
   const getInitials = (name) => {
-    if (!name) return "U";
+    if (!name) return "MR"; // Fallback to "MR" for M. Rizki dummy
     return name.substring(0, 2).toUpperCase();
   };
 
@@ -130,11 +133,13 @@ export default function Sidebar({ user, isOpen, setIsOpen }) {
         <div className="p-4 border-t border-border bg-muted/50">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
-              {getInitials(user?.username)}
+              {getInitials(user?.username || "M. Rizki")}
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-semibold text-foreground truncate capitalize">{user?.username}</span>
-              <span className="text-xs text-muted-foreground truncate capitalize">Administrator</span>
+              <span className="text-sm font-semibold text-foreground truncate capitalize">{user?.username || "M. Rizki"}</span>
+              <span className="text-xs text-muted-foreground truncate capitalize">
+                {isMahasiswa ? "Mahasiswa Aktif" : (user?.role || "Administrator")}
+              </span>
             </div>
           </div>
         </div>

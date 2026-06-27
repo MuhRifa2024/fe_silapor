@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { Menu, LogOut, User } from "lucide-react";
-import { Button } from "@/components/atoms/button";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
-import { ThemeToggle } from "@/components/atoms/theme-toggle";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export default function Header({ user, setIsOpen }) {
   const router = useRouter();

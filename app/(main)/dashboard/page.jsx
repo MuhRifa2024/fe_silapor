@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MahasiswaDashboard } from "@/components/organisms/MahasiswaDashboard";
-import { PetugasDashboard } from "@/components/organisms/PetugasDashboard";
-import { AdminDashboard } from "@/components/organisms/AdminDashboard";
+import { MahasiswaDashboard } from "@/components/dashboard/MahasiswaDashboard";
+import { PetugasDashboard } from "@/components/dashboard/PetugasDashboard";
+import { AdminDashboard } from "@/components/dashboard/AdminDashboard";
 
 export default function DashboardPage() {
   const router = useRouter();

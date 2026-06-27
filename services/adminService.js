@@ -21,6 +21,11 @@ export const deleteUser = async (id) => {
 };
 
 // KATEGORI SERVICES
+export const getKategoriList = async () => {
+  const response = await api.get("/kategori");
+  return response.data;
+};
+
 export const createKategori = async (data) => {
   const response = await api.post("/kategori", data);
   return response.data;

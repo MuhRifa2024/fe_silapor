@@ -7,11 +7,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "sonner";
 import { registerUser } from "@/services/authService";
-import { Button } from "@/components/atoms/button";
-import { Input } from "@/components/atoms/input";
-import { Label } from "@/components/atoms/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/atoms/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/atoms/select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Controller } from "react-hook-form";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -20,7 +20,6 @@ const registerSchema = z.object({
   nama: z.string().min(2, "Nama minimal 2 karakter"),
   username: z.string().min(1, "NIM/Username wajib diisi"),
   password: z.string().min(6, "Password minimal 6 karakter"),
-  role: z.string().default("mahasiswa"), // Default registration is for students usually
 });
 
 export default function RegisterPage() {
@@ -34,9 +33,6 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      role: "mahasiswa"
-    }
   });
 
   const onSubmit = async (data) => {
@@ -104,25 +100,7 @@ export default function RegisterPage() {
                 />
                 {errors.password && <p className="text-red-400 text-sm">{errors.password.message}</p>}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="role" className="text-slate-300">Daftar Sebagai (Role)</Label>
-                <Controller
-                  name="role"
-                  control={control}
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value || "mahasiswa"}>
-                      <SelectTrigger className="bg-slate-800/50 border-slate-700 text-slate-100">
-                        <SelectValue placeholder="Pilih Peran" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="mahasiswa">Mahasiswa</SelectItem>
-                        <SelectItem value="petugas">Petugas</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
+
               <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white" disabled={isLoading}>
                 {isLoading ? "Memproses..." : "Daftar"}
               </Button>
