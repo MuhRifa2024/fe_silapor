@@ -277,7 +277,7 @@ export default function TrackingPage() {
                   </p>
                   {laporan.feedback && (
                     <div className="bg-muted/50 p-4 rounded-lg text-muted-foreground w-full max-w-md italic border border-border">
-                      "{laporan.feedback}"
+                      &quot;{laporan.feedback}&quot;
                     </div>
                   )}
                 </div>
