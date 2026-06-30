@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getLaporanList, deleteLaporan } from "@/services/laporanService";
+import { getLaporanList, deleteLaporan, adminUpdateLaporan } from "@/services/laporanService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Trash2, Download, Zap, Droplet, Monitor, Sofa, Search, ClipboardList } from "lucide-react";
+import { Eye, Trash2, Download, Zap, Droplet, Monitor, Sofa, Search, ClipboardList, Settings, X, Calendar as CalendarIcon } from "lucide-react";
 import { toast } from "sonner";
 import swal from "@/lib/swal";
+import { getAllUsers } from "@/services/adminService";
 
 const getCategoryIcon = (categoryName) => {
   const name = categoryName?.toLowerCase() || "";
@@ -41,6 +42,24 @@ export default function LaporanPage() {
   const [userRole, setUserRole] = useState("");
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
+  // Admin Assign Modal States
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedReportForAssign, setSelectedReportForAssign] = useState(null);
+  const [petugasList, setPetugasList] = useState([]);
+  const [assignForm, setAssignForm] = useState({ prioritas: "normal", petugas_id: "none", tenggat_waktu: "" });
+  const [isAssigning, setIsAssigning] = useState(false);
+
+  const fetchPetugasList = async () => {
+    try {
+      const res = await getAllUsers();
+      if (res.data) {
+        setPetugasList(res.data.filter(u => u.role === "petugas"));
+      }
+    } catch (e) {
+      console.error("Gagal memuat petugas", e);
+    }
+  };
+
   const fetchLaporan = async () => {
     setIsLoading(true);
     try {
@@ -58,15 +77,61 @@ export default function LaporanPage() {
     if (userStr && userStr !== "undefined") {
       try {
         const u = JSON.parse(userStr);
-        setUserRole(u.role);
         setUser(u);
-      } catch (e) {}
-    } else {
-      setUserRole("mahasiswa"); // default if not logged in just in case
+        setUserRole(u.role);
+        if (u.role === "admin") {
+          fetchPetugasList();
+        }
+      } catch (e) {
+        console.error("Invalid user JSON");
+      }
     }
     setIsAuthLoading(false);
-    fetchLaporan();
   }, []);
+
+  useEffect(() => {
+    if (!isAuthLoading) {
+      fetchLaporan();
+    }
+  }, [isAuthLoading]);
+
+  const handleOpenAssignModal = (report) => {
+    setSelectedReportForAssign(report);
+    setAssignForm({
+      prioritas: report.prioritas || "normal",
+      petugas_id: report.petugas_id ? String(report.petugas_id) : "none",
+      tenggat_waktu: report.tenggat_waktu ? report.tenggat_waktu.slice(0, 16) : "" // Slice to match datetime-local format
+    });
+    setIsAssignModalOpen(true);
+  };
+
+  const handleAssignSubmit = async () => {
+    setIsAssigning(true);
+    try {
+      const payload = {
+        prioritas: assignForm.prioritas,
+      };
+      if (assignForm.petugas_id !== "none") {
+        payload.petugas_id = parseInt(assignForm.petugas_id);
+      } else {
+        payload.petugas_id = 0; // Means remove assignment or keep null
+      }
+      if (assignForm.tenggat_waktu) {
+        payload.tenggat_waktu = new Date(assignForm.tenggat_waktu).toISOString();
+      } else {
+        payload.tenggat_waktu = null;
+      }
+
+      await adminUpdateLaporan(selectedReportForAssign.id, payload);
+      toast.success("Laporan berhasil diperbarui");
+      setIsAssignModalOpen(false);
+      fetchLaporan();
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Gagal memperbarui laporan");
+    } finally {
+      setIsAssigning(false);
+    }
+  };
 
   const handleDelete = async (id) => {
     const result = await swal.fire({
@@ -362,19 +427,30 @@ export default function LaporanPage() {
                       </div>
 
                       <div className="flex items-center gap-2 ml-2">
-                        <Link href={`/laporan/tracking/${item.id}`}>
-                          <Button variant="outline" size="icon" className="h-9 w-9 border-border text-foreground hover:bg-muted rounded-full">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                        {(userRole === "admin" || userRole === "petugas") && (
+                        {userRole === "admin" && (
                           <Button 
                             variant="outline" 
+                            size="icon"
+                            className="bg-primary/10 text-primary border-primary/20 hover:bg-primary hover:text-primary-foreground"
+                            onClick={() => handleOpenAssignModal(item)}
+                            title="Assign & Prioritas"
+                          >
+                            <Settings className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Link href={`/laporan/tracking/${item.id}`}>
+                          <Button variant="secondary" size="icon" className="bg-muted text-muted-foreground hover:text-foreground">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                        {userRole === "admin" && (
+                          <Button 
+                            variant="destructive" 
                             size="icon" 
-                            className="h-9 w-9 border-rose-200 dark:border-rose-900/50 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-full"
+                            className="bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white border-none"
                             onClick={() => handleDelete(item.id)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         )}
                       </div>
@@ -389,6 +465,82 @@ export default function LaporanPage() {
           )}
         </div>
       </div>
+
+      {/* Admin Assign Modal */}
+      {isAssignModalOpen && selectedReportForAssign && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card w-full max-w-md rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-5">
+                <h2 className="text-xl font-bold text-foreground">Pengaturan Laporan</h2>
+                <Button variant="ghost" size="icon" onClick={() => setIsAssignModalOpen(false)} className="rounded-full text-muted-foreground hover:text-foreground hover:bg-muted">
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1 block">Tingkat Prioritas</label>
+                  <Select value={assignForm.prioritas} onValueChange={(val) => setAssignForm({...assignForm, prioritas: val})}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Pilih prioritas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="tinggi">Tinggi (Eskalasi)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1 block">Tugaskan Kepada Petugas</label>
+                  <Select value={assignForm.petugas_id} onValueChange={(val) => setAssignForm({...assignForm, petugas_id: val})}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Pilih Petugas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sesuai Kategori (Otomatis)</SelectItem>
+                      {petugasList.map(p => (
+                        <SelectItem key={p.id} value={String(p.id)}>{p.nama} (ID: {p.id})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-1 block">Tenggat Waktu (Deadline) Khusus</label>
+                  <div className="relative">
+                    <Input 
+                      type="datetime-local" 
+                      className="w-full"
+                      value={assignForm.tenggat_waktu}
+                      onChange={(e) => setAssignForm({...assignForm, tenggat_waktu: e.target.value})}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Kosongkan jika ingin mengikuti SLA bawaan kategori.</p>
+                </div>
+
+                <div className="pt-4 flex gap-3">
+                  <Button 
+                    variant="outline" 
+                    className="flex-1" 
+                    onClick={() => setIsAssignModalOpen(false)}
+                  >
+                    Batal
+                  </Button>
+                  <Button 
+                    className="flex-1 bg-primary text-primary-foreground font-bold hover:bg-primary/90" 
+                    onClick={handleAssignSubmit}
+                    disabled={isAssigning}
+                  >
+                    {isAssigning ? "Menyimpan..." : "Simpan Perubahan"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

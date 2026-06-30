@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line } from "recharts";
@@ -14,7 +14,9 @@ export default function StatistikPage() {
     rataWaktuSelesai: "0 Jam",
     dieskalasi: 0,
     petugasTeraktif: "Belum ada",
-    petugasCount: 0
+    petugasCount: 0,
+    petugasTerbaik: "Belum ada",
+    petugasTerbaikMetrik: "Belum ada rating"
   });
   const [loading, setLoading] = useState(true);
 
@@ -53,20 +55,57 @@ export default function StatistikPage() {
         });
         const trenData = Object.keys(trenMap).map(k => ({ name: k, laporan: trenMap[k] }));
 
-        // 4. Petugas Teraktif
+        // 4. Petugas Teraktif & Petugas Terbaik
         const petMap = {};
+        const petRatingMap = {};
         laporan.forEach(l => {
-          const petugasNama = l.kategori?.petugas?.nama;
+          const petugasNama = l.petugas?.nama || l.kategori?.petugas?.nama;
           if (petugasNama && l.status === "selesai") {
             petMap[petugasNama] = (petMap[petugasNama] || 0) + 1;
+            
+            if (!petRatingMap[petugasNama]) {
+              petRatingMap[petugasNama] = { totalRating: 0, countRating: 0, missedDeadline: 0 };
+            }
+            if (l.rating && l.rating > 0) {
+              petRatingMap[petugasNama].totalRating += l.rating;
+              petRatingMap[petugasNama].countRating += 1;
+            }
+            // Check if missed deadline
+            if (l.tenggat_waktu && l.tanggal_selesai) {
+              const deadline = new Date(l.tenggat_waktu.replace(" ", "T")).getTime();
+              const selesai = new Date(l.tanggal_selesai.replace(" ", "T")).getTime();
+              if (selesai > deadline) {
+                petRatingMap[petugasNama].missedDeadline += 1;
+              }
+            } else if (l.prioritas === "tinggi") {
+               // Missed SLA
+               petRatingMap[petugasNama].missedDeadline += 1;
+            }
           }
         });
+        
         let topPetugas = "Belum ada";
         let topCount = 0;
+        let bestPetugas = "Belum ada";
+        let bestScore = -999;
+        let bestMetrik = "Belum ada rating";
+
         for (const [name, count] of Object.entries(petMap)) {
+          // Petugas Teraktif
           if (count > topCount) {
             topPetugas = name;
             topCount = count;
+          }
+          // Petugas Terbaik (Score = (Avg Rating * 10) + (Selesai * 2) - (Missed Deadline * 5))
+          const rm = petRatingMap[name];
+          if (rm.countRating > 0) {
+            const avgRating = rm.totalRating / rm.countRating;
+            const score = (avgRating * 10) + (count * 2) - (rm.missedDeadline * 5);
+            if (score > bestScore) {
+              bestScore = score;
+              bestPetugas = name;
+              bestMetrik = `★ ${avgRating.toFixed(1)} | ${count} selesai | ${rm.missedDeadline} telat`;
+            }
           }
         }
 
@@ -99,7 +138,9 @@ export default function StatistikPage() {
           rataWaktuSelesai: `${avgHours} Jam`,
           dieskalasi,
           petugasTeraktif: topPetugas,
-          petugasCount: topCount
+          petugasCount: topCount,
+          petugasTerbaik: bestPetugas,
+          petugasTerbaikMetrik: bestMetrik
         });
       } catch (error) {
         console.error("Gagal memuat statistik", error);
@@ -131,7 +172,7 @@ export default function StatistikPage() {
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Statistik & Kinerja</h1>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card className="bg-card border-border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Laporan Bulan Ini</CardTitle>
@@ -166,6 +207,17 @@ export default function StatistikPage() {
           <CardContent>
             <div className="text-xl font-bold text-foreground">{stats.petugasTeraktif}</div>
             <p className="text-xs text-muted-foreground mt-1">Menyelesaikan {stats.petugasCount} laporan</p>
+          </CardContent>
+        </Card>
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-amber-500 flex items-center gap-1">
+              Petugas Terbaik
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-foreground">{stats.petugasTerbaik}</div>
+            <p className="text-xs text-muted-foreground mt-1">{stats.petugasTerbaikMetrik}</p>
           </CardContent>
         </Card>
       </div>

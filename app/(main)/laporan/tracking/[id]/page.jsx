@@ -3,8 +3,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { MapPin, AlertCircle, Clock, CheckCircle2, Play, Check } from "lucide-react";
-import { getLaporanDetail, getLaporanRiwayat, updateStatusLaporan } from "@/services/laporanService";
+import { MapPin, AlertCircle, Clock, CheckCircle2, Play, Check, Star } from "lucide-react";
+import { getLaporanDetail, getLaporanRiwayat, updateStatusLaporan, submitRating } from "@/services/laporanService";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import swal from "@/lib/swal";
@@ -17,7 +17,10 @@ export default function TrackingPage() {
   const [error, setError] = useState(null);
   const [userRole, setUserRole] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
-
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [feedback, setFeedback] = useState("");
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
   const fetchData = async () => {
     setIsLoading(true);
     try {
@@ -67,11 +70,38 @@ export default function TrackingPage() {
     }
   };
 
+  const handleSubmitRating = async () => {
+    if (rating === 0) {
+      toast.error("Silakan berikan rating (1-5 bintang)");
+      return;
+    }
+    setIsSubmittingRating(true);
+    try {
+      await submitRating(id, { rating, feedback });
+      toast.success("Terima kasih atas ulasan Anda!");
+      fetchData(); // Refresh data so rating appears
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Gagal mengirim rating");
+    } finally {
+      setIsSubmittingRating(false);
+    }
+  };
+
   if (isLoading) return <div className="p-8 text-center animate-pulse">Memuat tracking...</div>;
   if (error || !laporan) return <div className="p-8 text-center text-destructive">{error || "Laporan tidak ditemukan"}</div>;
 
   const getSLAInfo = () => {
     if (laporan.status === "selesai") return <p className="font-semibold text-emerald-600">Selesai</p>;
+    
+    if (laporan.tenggat_waktu) {
+      const deadline = new Date(laporan.tenggat_waktu.replace(" ", "T")).getTime();
+      const now = new Date().getTime();
+      if (now > deadline) {
+        return <p className="font-semibold text-destructive flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/> Terlewat Tenggat Waktu</p>;
+      }
+      return <p className="font-semibold text-amber-600 flex items-center gap-1"><Clock className="w-3.5 h-3.5"/> Dalam batas waktu</p>;
+    }
+
     if (laporan.prioritas === "tinggi") return <p className="font-semibold text-destructive flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/> Terlewat SLA</p>;
     return <p className="font-semibold text-amber-600 flex items-center gap-1"><Clock className="w-3.5 h-3.5"/> Dalam batas waktu</p>;
   };
@@ -228,6 +258,75 @@ export default function TrackingPage() {
             )}
           </div>
         </div>
+
+        {/* Rating & Feedback Section */}
+        {laporan.status === "selesai" && (laporan.rating > 0 || userRole === "mahasiswa") && (
+          <div>
+            <h3 className="text-lg font-bold text-foreground mb-6">Ulasan Penanganan</h3>
+            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+              {laporan.rating > 0 ? (
+                // Already rated
+                <div className="flex flex-col items-center text-center py-4">
+                  <div className="flex gap-1 mb-3">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className={`w-8 h-8 ${star <= laporan.rating ? 'fill-amber-400 text-amber-400' : 'fill-muted text-muted'}`} />
+                    ))}
+                  </div>
+                  <p className="font-semibold text-lg text-foreground mb-2">
+                    {userRole === "mahasiswa" ? "Terima kasih atas ulasan Anda!" : "Ulasan dari pelapor"}
+                  </p>
+                  {laporan.feedback && (
+                    <div className="bg-muted/50 p-4 rounded-lg text-muted-foreground w-full max-w-md italic border border-border">
+                      "{laporan.feedback}"
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Not yet rated
+                <div className="flex flex-col items-center max-w-md mx-auto">
+                  <p className="text-foreground font-medium mb-4 text-center">Seberapa puas Anda dengan penanganan laporan ini?</p>
+                  <div className="flex gap-2 mb-6">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setRating(star)}
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        className="focus:outline-none transition-transform hover:scale-110"
+                      >
+                        <Star 
+                          className={`w-10 h-10 transition-colors ${
+                            star <= (hoverRating || rating) 
+                              ? 'fill-amber-400 text-amber-400' 
+                              : 'fill-transparent text-muted-foreground stroke-[1.5]'
+                          }`} 
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <div className="w-full space-y-4">
+                    <textarea
+                      placeholder="Bagikan pengalaman Anda atau berikan masukan (opsional)..."
+                      className="w-full min-h-[100px] p-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none resize-none"
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                    ></textarea>
+                    
+                    <Button 
+                      onClick={handleSubmitRating} 
+                      disabled={isSubmittingRating || rating === 0}
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
+                    >
+                      {isSubmittingRating ? "Mengirim..." : "Kirim Ulasan"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
