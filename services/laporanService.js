@@ -29,3 +29,13 @@ export const getLaporanRiwayat = async (id) => {
   const response = await api.get(`/laporan/${id}/riwayat`);
   return response.data;
 };
+
+export const submitRating = async (id, ratingData) => {
+  const response = await api.put(`/laporan/${id}/rating`, ratingData);
+  return response.data;
+};
+
+export const adminUpdateLaporan = async (id, updateData) => {
+  const response = await api.put(`/laporan/${id}/admin-update`, updateData);
+  return response.data;
+};

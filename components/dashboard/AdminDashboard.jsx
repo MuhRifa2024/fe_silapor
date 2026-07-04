@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Download, AlertTriangle, Zap, Droplet, Monitor } from "lucide-react";
@@ -43,8 +43,8 @@ export function AdminDashboard({ user }) {
   const stats = [
     { title: "Total Laporan", value: data.total_laporan || 0, sub: "Semua laporan", color: "text-emerald-400" },
     { title: "Belum Selesai", value: data.belum_selesai || 0, sub: "Perlu perhatian", color: "text-amber-500" },
-    { title: "Dieskalasi Otomatis", value: data.dieskalasi || 0, sub: "Prioritas tinggi", color: "text-rose-500", highlight: true },
-    { title: "Total Pengguna", value: data.total_pengguna || 0, sub: "Sistem aktif", color: "text-emerald-400" },
+    { title: "Prioritas Aktif", value: data.dieskalasi || 0, sub: "Prioritas tinggi", color: "text-primary", highlight: false },
+    { title: "Terlambat", value: data.terlambat || 0, sub: "Lewat SLA/Tenggat", color: "text-rose-500", highlight: true },
   ];
 
   return (
@@ -60,11 +60,11 @@ export function AdminDashboard({ user }) {
         </div>
       </div>
 
-      {data.dieskalasi > 0 && (
-        <div className="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-start sm:items-center gap-3">
-          <AlertTriangle className="h-5 w-5 text-primary shrink-0 mt-0.5 sm:mt-0" />
-          <p className="text-sm text-primary font-medium">
-            {data.dieskalasi} laporan melebihi batas SLA dan diprioritaskan otomatis. <span className="font-bold underline decoration-primary underline-offset-4 cursor-pointer">Segera tindak lanjuti.</span>
+      {data.terlambat > 0 && (
+        <div className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 flex items-start sm:items-center gap-3">
+          <AlertTriangle className="h-5 w-5 text-rose-500 shrink-0 mt-0.5 sm:mt-0" />
+          <p className="text-sm text-rose-500 font-medium">
+            Terdapat {data.terlambat} laporan aktif yang melewati batas waktu SLA / Tenggat Waktu. <span className="font-bold underline decoration-rose-500 underline-offset-4 cursor-pointer">Segera pantau petugas.</span>
           </p>
         </div>
       )}
@@ -80,38 +80,73 @@ export function AdminDashboard({ user }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        {/* Laporan Prioritas Tinggi */}
-        <div>
-          <h3 className="text-lg font-bold text-foreground mb-4">Laporan Prioritas Tinggi</h3>
-          <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col gap-3 p-5">
-            {!data.priority_reports || data.priority_reports.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">Tidak ada laporan prioritas tinggi.</p>
-            ) : (
-              data.priority_reports.map((report, i) => {
-                return (
-                  <div key={report.id || i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-border bg-muted/30">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-background flex items-center justify-center shrink-0 border border-border">
-                        {getCategoryIcon(report.kategori?.nama_kategori)}
+        <div className="space-y-6">
+          {/* Laporan Prioritas Tinggi */}
+          <div>
+            <h3 className="text-lg font-bold text-foreground mb-4">Laporan Prioritas Tinggi</h3>
+            <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col gap-3 p-5">
+              {!data.priority_reports || data.priority_reports.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">Tidak ada laporan prioritas tinggi yang aktif.</p>
+              ) : (
+                data.priority_reports.map((report, i) => {
+                  return (
+                    <div key={report.id || i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-border bg-muted/30">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-background flex items-center justify-center shrink-0 border border-border">
+                          {getCategoryIcon(report.kategori?.nama_kategori)}
+                        </div>
+                        <div>
+                          <h4 className="text-foreground font-semibold">{report.deskripsi?.substring(0, 20)}...</h4>
+                          <p className="text-xs text-muted-foreground mt-1">{report.kategori?.nama_kategori || "Umum"} • {report.pelapor?.nama || "User"}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="text-foreground font-semibold">{report.deskripsi?.substring(0, 20)}...</h4>
-                        <p className="text-xs text-muted-foreground mt-1">{report.kategori?.nama_kategori || "Umum"} • {report.pelapor?.nama || "User"}</p>
+                      <div className="mt-3 sm:mt-0 self-start sm:self-center">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                          report.status === "dikerjakan" 
+                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400" 
+                          : "bg-primary/20 text-primary dark:bg-primary/20 dark:text-primary"
+                        }`}>
+                          {report.status || "tinggi"}
+                        </span>
                       </div>
                     </div>
-                    <div className="mt-3 sm:mt-0 self-start sm:self-center">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                        report.status === "dikerjakan" 
-                        ? "bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400" 
-                        : "bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400"
-                      }`}>
-                        {report.status || "tinggi"}
-                      </span>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Laporan Terlambat */}
+          <div>
+            <h3 className="text-lg font-bold text-rose-500 mb-4 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" /> Laporan Terlambat
+            </h3>
+            <div className="bg-card border border-border rounded-xl overflow-hidden flex flex-col gap-3 p-5">
+              {!data.late_reports || data.late_reports.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">Tidak ada laporan yang terlambat.</p>
+              ) : (
+                data.late_reports.map((report, i) => {
+                  return (
+                    <div key={report.id || i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-rose-500/20 bg-rose-500/5">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-background flex items-center justify-center shrink-0 border border-rose-200">
+                          {getCategoryIcon(report.kategori?.nama_kategori)}
+                        </div>
+                        <div>
+                          <h4 className="text-foreground font-semibold">{report.deskripsi?.substring(0, 20)}...</h4>
+                          <p className="text-xs text-muted-foreground mt-1">{report.kategori?.nama_kategori || "Umum"} • {report.pelapor?.nama || "User"}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 sm:mt-0 self-start sm:self-center">
+                        <span className="px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400">
+                          {report.status}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
 
