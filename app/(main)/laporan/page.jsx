@@ -507,9 +507,18 @@ export default function LaporanPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Sesuai Kategori (Otomatis)</SelectItem>
-                      {petugasList.map(p => (
-                        <SelectItem key={p.id} value={String(p.id)}>{p.nama} (ID: {p.id})</SelectItem>
-                      ))}
+                      {petugasList.map(p => {
+                        const namaKategori = p.kategori_fasilitas && p.kategori_fasilitas.length > 0 
+                          ? p.kategori_fasilitas[0].nama_kategori 
+                          : "";
+                        const labelTampil = namaKategori ? `${p.nama} - ${namaKategori}` : p.nama;
+                        
+                        return (
+                          <SelectItem key={p.id} value={String(p.id)}>
+                            {labelTampil}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
