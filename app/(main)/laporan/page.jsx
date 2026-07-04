@@ -89,13 +89,10 @@ export default function LaporanPage() {
       }
     }
     setIsAuthLoading(false);
-<<<<<<< HEAD
     fetchLaporan();
     getKategoriList().then(res => {
       if (res.data) setCategories(res.data);
     }).catch(console.error);
-=======
->>>>>>> 3dc2fbab04ce0d34c356b086b00b70de30217115
   }, []);
 
   useEffect(() => {
