@@ -493,8 +493,8 @@ export default function LaporanPage() {
                       <SelectValue placeholder="Pilih prioritas" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="tinggi">Tinggi (Eskalasi)</SelectItem>
+                      <SelectItem value="normal" label="Normal">Normal</SelectItem>
+                      <SelectItem value="tinggi" label="Tinggi (Eskalasi)">Tinggi (Eskalasi)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -506,7 +506,7 @@ export default function LaporanPage() {
                       <SelectValue placeholder="Pilih Petugas" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Sesuai Kategori (Otomatis)</SelectItem>
+                      <SelectItem value="none" label="Sesuai Kategori (Otomatis)">Sesuai Kategori (Otomatis)</SelectItem>
                       {petugasList.map(p => {
                         const namaKategori = p.kategori_fasilitas && p.kategori_fasilitas.length > 0 
                           ? p.kategori_fasilitas[0].nama_kategori 
@@ -514,7 +514,7 @@ export default function LaporanPage() {
                         const labelTampil = namaKategori ? `${p.nama} - ${namaKategori}` : p.nama;
                         
                         return (
-                          <SelectItem key={p.id} value={String(p.id)}>
+                          <SelectItem key={p.id} value={String(p.id)} label={labelTampil}>
                             {labelTampil}
                           </SelectItem>
                         );
