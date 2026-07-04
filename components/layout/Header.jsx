@@ -14,6 +14,17 @@ export default function Header({ user, setIsOpen }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  const fetchNotifikasi = async () => {
+    try {
+      const res = await getNotifikasi();
+      // res.data adalah wrapper { message, data }, array notifikasi ada di res.data.data
+      const list = res.data?.data;
+      if (Array.isArray(list)) setNotifications(list);
+    } catch (error) {
+      console.error("Gagal memuat notifikasi", error);
+    }
+  };
+
   useEffect(() => {
     fetchNotifikasi();
     const interval = setInterval(fetchNotifikasi, 30000); // Poll every 30 detik
@@ -30,17 +41,6 @@ export default function Header({ user, setIsOpen }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const fetchNotifikasi = async () => {
-    try {
-      const res = await getNotifikasi();
-      // res.data adalah wrapper { message, data }, array notifikasi ada di res.data.data
-      const list = res.data?.data;
-      if (Array.isArray(list)) setNotifications(list);
-    } catch (error) {
-      console.error("Gagal memuat notifikasi", error);
-    }
-  };
 
   const handleMarkAsRead = async (id) => {
     try {
