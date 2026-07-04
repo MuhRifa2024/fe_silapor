@@ -10,6 +10,7 @@ import { toast } from "sonner";
 export default function TugasSayaPage() {
   const [laporan, setLaporan] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -24,6 +25,7 @@ export default function TugasSayaPage() {
 
   async function fetchData() {
     setLoading(true);
+    setIsError(false);
     try {
       const res = await getLaporanList();
       const allLaporan = res.data || [];
@@ -31,6 +33,8 @@ export default function TugasSayaPage() {
       setLaporan(allLaporan.filter(l => l.status !== "selesai"));
     } catch (error) {
       console.error("Gagal memuat tugas", error);
+      setIsError(true);
+      toast.error("Gagal memuat daftar tugas");
     } finally {
       setLoading(false);
     }
@@ -139,6 +143,12 @@ export default function TugasSayaPage() {
               </div>
             );
           })
+        ) : isError ? (
+          <div className="p-8 text-center text-red-500 font-medium flex flex-col items-center gap-2">
+            <AlertTriangle className="w-8 h-8" />
+            Terjadi kesalahan saat memuat tugas.
+            <Button variant="outline" size="sm" onClick={fetchData} className="mt-2 text-foreground">Coba Lagi</Button>
+          </div>
         ) : (
           <div className="p-8 text-center text-muted-foreground font-medium">Yeay! Tidak ada tugas yang menunggu.</div>
         )}
@@ -174,7 +184,15 @@ export default function TugasSayaPage() {
                   {!fileBukti ? (
                     <div 
                       onClick={() => fileInputRef.current?.click()}
-                      className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          fileInputRef.current?.click();
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      className="border-2 border-dashed border-border rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-muted/50 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
                     >
                       <div className="bg-primary/10 p-3 rounded-full mb-3 text-primary">
                         <UploadCloud className="w-6 h-6" />
@@ -199,7 +217,7 @@ export default function TugasSayaPage() {
               <div className="flex justify-end gap-3">
                 <Button variant="outline" onClick={() => setIsModalOpen(false)} disabled={isSubmitting}>Batal</Button>
                 <Button onClick={handleConfirmUpdate} disabled={isSubmitting}>
-                  {isSubmitting ? "Menyimpan..." : "Konfirmasi Update"}
+                  {isSubmitting && selectedTask?.status === "dikerjakan" ? "Mengunggah..." : isSubmitting ? "Menyimpan..." : "Konfirmasi Update"}
                 </Button>
               </div>
             </div>

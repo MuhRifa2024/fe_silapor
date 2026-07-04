@@ -490,7 +490,9 @@ export default function LaporanPage() {
                   <label className="text-sm font-semibold text-foreground mb-1 block">Tingkat Prioritas</label>
                   <Select value={assignForm.prioritas} onValueChange={(val) => setAssignForm({...assignForm, prioritas: val})}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Pilih prioritas" />
+                      <SelectValue placeholder="Pilih prioritas">
+                        {assignForm.prioritas === "normal" ? "Normal" : assignForm.prioritas === "tinggi" ? "Tinggi (Eskalasi)" : ""}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="normal" label="Normal">Normal</SelectItem>
@@ -503,7 +505,17 @@ export default function LaporanPage() {
                   <label className="text-sm font-semibold text-foreground mb-1 block">Tugaskan Kepada Petugas</label>
                   <Select value={assignForm.petugas_id} onValueChange={(val) => setAssignForm({...assignForm, petugas_id: val})}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Pilih Petugas" />
+                      <SelectValue placeholder="Pilih Petugas">
+                        {(() => {
+                          if (assignForm.petugas_id === "none") return "Sesuai Kategori (Otomatis)";
+                          const p = petugasList.find(x => String(x.id) === assignForm.petugas_id);
+                          if (!p) return "";
+                          const namaKategori = p.kategori_fasilitas && p.kategori_fasilitas.length > 0 
+                            ? p.kategori_fasilitas[0].nama_kategori 
+                            : "";
+                          return namaKategori ? `${p.nama} - ${namaKategori}` : p.nama;
+                        })()}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none" label="Sesuai Kategori (Otomatis)">Sesuai Kategori (Otomatis)</SelectItem>
