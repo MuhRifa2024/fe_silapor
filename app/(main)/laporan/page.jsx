@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getLaporanList, deleteLaporan } from "@/services/laporanService";
+import { getKategoriList } from "@/services/adminService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,6 +41,7 @@ export default function LaporanPage() {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState("");
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
 
   const fetchLaporan = async () => {
     setIsLoading(true);
@@ -66,6 +68,9 @@ export default function LaporanPage() {
     }
     setIsAuthLoading(false);
     fetchLaporan();
+    getKategoriList().then(res => {
+      if (res.data) setCategories(res.data);
+    }).catch(console.error);
   }, []);
 
   const handleDelete = async (id) => {
@@ -301,10 +306,11 @@ export default function LaporanPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="semua">Semua kategori</SelectItem>
-                <SelectItem value="elektrik">Elektrik</SelectItem>
-                <SelectItem value="sanitasi">Sanitasi</SelectItem>
-                <SelectItem value="it">IT</SelectItem>
-                <SelectItem value="furnitur">Furnitur</SelectItem>
+                {categories.map((c) => (
+                  <SelectItem key={c.id} value={c.nama_kategori.toLowerCase()}>
+                    {c.nama_kategori}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
