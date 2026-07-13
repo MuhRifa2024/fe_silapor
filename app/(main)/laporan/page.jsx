@@ -334,7 +334,11 @@ export default function LaporanPage() {
               <Plus className="mr-2 h-4 w-4" /> Buat Laporan
             </Button>
           </Link>
-          <Button variant="outline" className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all duration-300 text-slate-700 dark:text-slate-200">
+          <Button 
+            variant="outline" 
+            onClick={handleExportCSV}
+            className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all duration-300 text-slate-700 dark:text-slate-200"
+          >
             <Download className="mr-2 h-4 w-4" /> Export CSV
           </Button>
         </div>
