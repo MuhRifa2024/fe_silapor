@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getKategoriList, createKategori, updateKategori, getAllUsers } from "@/services/adminService";
+import { getKategoriList, createKategori, updateKategori, deleteKategori, getAllUsers } from "@/services/adminService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { Plus, Edit, Trash2, Settings, ListPlus, Clock, UserCheck } from "lucide
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { motion } from "framer-motion";
+import Swal from "sweetalert2";
 
 export default function KelolaKategoriPage() {
   const [categories, setCategories] = useState([]);
@@ -97,6 +98,31 @@ export default function KelolaKategoriPage() {
     } catch (error) {
       toast.error(error.response?.data?.message || "Gagal menyimpan kategori");
     }
+  };
+
+  const handleDelete = async (id, namaKategori) => {
+    Swal.fire({
+      title: "Hapus Kategori?",
+      text: `Anda yakin ingin menghapus kategori "${namaKategori}"? Laporan yang terhubung mungkin akan kehilangan referensi kategori.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: "Batal",
+      background: document.documentElement.classList.contains('dark') ? '#1e293b' : '#ffffff',
+      color: document.documentElement.classList.contains('dark') ? '#f8fafc' : '#0f172a',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteKategori(id);
+          toast.success("Kategori berhasil dihapus");
+          fetchData();
+        } catch (error) {
+          toast.error(error.response?.data?.message || "Gagal menghapus kategori");
+        }
+      }
+    });
   };
 
   return (
@@ -202,14 +228,26 @@ export default function KelolaKategoriPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 rounded-full transition-all duration-300"
-                        onClick={() => openEditModal(c)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 rounded-full transition-all duration-300"
+                          onClick={() => openEditModal(c)}
+                          title="Edit Kategori"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/50 rounded-full transition-all duration-300"
+                          onClick={() => handleDelete(c.id, c.nama_kategori)}
+                          title="Hapus Kategori"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

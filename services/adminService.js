@@ -35,3 +35,8 @@ export const updateKategori = async (id, data) => {
   const response = await api.put(`/kategori/${id}`, data);
   return response.data;
 };
+
+export const deleteKategori = async (id) => {
+  const response = await api.delete(`/kategori/${id}`);
+  return response.data;
+};
