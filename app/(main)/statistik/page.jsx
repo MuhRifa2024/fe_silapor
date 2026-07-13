@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 
 import { useState, useEffect } from "react";
 import { getLaporanList } from "@/services/laporanService";
+import { motion } from "framer-motion";
 
 export default function StatistikPage() {
   const [dataKategori, setDataKategori] = useState([]);
@@ -153,111 +154,117 @@ export default function StatistikPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-10 bg-muted rounded w-1/4"></div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[1,2,3,4].map(i => <div key={i} className="h-28 bg-muted rounded-xl"></div>)}
+      <div className="space-y-6 animate-pulse max-w-[1200px] mx-auto">
+        <div className="h-10 bg-white/50 dark:bg-slate-800/50 rounded w-1/4"></div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+          {[1,2,3,4,5].map(i => <div key={i} className="h-28 bg-white/50 dark:bg-slate-800/50 rounded-xl"></div>)}
         </div>
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="h-80 bg-muted rounded-xl"></div>
-          <div className="h-80 bg-muted rounded-xl"></div>
+          <div className="h-80 bg-white/50 dark:bg-slate-800/50 rounded-xl"></div>
+          <div className="h-80 bg-white/50 dark:bg-slate-800/50 rounded-xl"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Statistik & Kinerja</h1>
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 drop-shadow-sm transition-colors duration-300">
+          Statistik & Kinerja
+        </h1>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        <Card className="bg-card border-border">
+        <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-white/50 dark:border-slate-700/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Laporan Bulan Ini</CardTitle>
+            <CardTitle className="text-sm font-semibold text-slate-600 dark:text-slate-400">Total Laporan Bulan Ini</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.totalBulanIni}</div>
-            <p className="text-xs text-muted-foreground mt-1">Selama bulan ini</p>
+            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{stats.totalBulanIni}</div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Selama bulan ini</p>
           </CardContent>
         </Card>
-        <Card className="bg-card border-border">
+        
+        <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-white/50 dark:border-slate-700/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Rata-rata Waktu Selesai</CardTitle>
+            <CardTitle className="text-sm font-semibold text-slate-600 dark:text-slate-400">Rata-rata Waktu Selesai</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-foreground">{stats.rataWaktuSelesai}</div>
-            <p className="text-xs text-muted-foreground mt-1">Waktu penanganan efektif</p>
+            <div className="text-3xl font-bold text-slate-800 dark:text-slate-100">{stats.rataWaktuSelesai}</div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Waktu penanganan efektif</p>
           </CardContent>
         </Card>
-        <Card className="bg-card border-border">
+        
+        <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-rose-200/50 dark:border-rose-900/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-rose-500/20 group">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Laporan Dieskalasi</CardTitle>
+            <CardTitle className="text-sm font-semibold text-rose-600 dark:text-rose-400">Laporan Dieskalasi</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-destructive">{stats.dieskalasi}</div>
-            <p className="text-xs text-destructive mt-1">Laporan prioritas tinggi</p>
+            <div className="text-3xl font-bold text-rose-600 dark:text-rose-400">{stats.dieskalasi}</div>
+            <p className="text-xs text-rose-500/80 dark:text-rose-400/80 mt-1 font-medium">Laporan prioritas tinggi</p>
           </CardContent>
         </Card>
-        <Card className="bg-card border-border">
+        
+        <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-white/50 dark:border-slate-700/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Petugas Teraktif</CardTitle>
+            <CardTitle className="text-sm font-semibold text-slate-600 dark:text-slate-400">Petugas Teraktif</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-foreground">{stats.petugasTeraktif}</div>
-            <p className="text-xs text-muted-foreground mt-1">Menyelesaikan {stats.petugasCount} laporan</p>
+            <div className="text-xl font-bold text-slate-800 dark:text-slate-100">{stats.petugasTeraktif}</div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">Menyelesaikan {stats.petugasCount} laporan</p>
           </CardContent>
         </Card>
-        <Card className="bg-card border-border">
+        
+        <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-amber-200/50 dark:border-amber-900/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-amber-500/20 group">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-amber-500 flex items-center gap-1">
+            <CardTitle className="text-sm font-semibold text-amber-600 dark:text-amber-500 flex items-center gap-1">
               Petugas Terbaik
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold text-foreground">{stats.petugasTerbaik}</div>
-            <p className="text-xs text-muted-foreground mt-1">{stats.petugasTerbaikMetrik}</p>
+            <div className="text-xl font-bold text-slate-800 dark:text-slate-100">{stats.petugasTerbaik}</div>
+            <p className="text-xs text-amber-600/80 dark:text-amber-500/80 mt-1 font-medium">{stats.petugasTerbaikMetrik}</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <Card className="bg-card border-border">
+        <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-white/50 dark:border-slate-700/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-foreground">Jumlah Laporan per Kategori</CardTitle>
-            <CardDescription>Distribusi kerusakan fasilitas kampus</CardDescription>
+            <CardTitle className="text-slate-800 dark:text-slate-100">Jumlah Laporan per Kategori</CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400">Distribusi kerusakan fasilitas kampus</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             {dataKategori.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dataKategori}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "currentColor", opacity: 0.7 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "currentColor", opacity: 0.7 }} />
-                  <RechartsTooltip cursor={{fill: 'var(--color-muted)'}} contentStyle={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)", color: "var(--color-foreground)" }} />
-                  <Bar dataKey="total" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.2)" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontWeight: 500, fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontWeight: 500, fontSize: 12 }} />
+                  <RechartsTooltip cursor={{fill: 'rgba(148, 163, 184, 0.1)'}} contentStyle={{ backgroundColor: "rgba(255, 255, 255, 0.8)", backdropFilter: "blur(8px)", borderColor: "rgba(255,255,255,0.5)", color: "#1e293b", borderRadius: "8px", fontWeight: "bold" }} />
+                  <Bar dataKey="total" fill="#4f46e5" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground">Belum ada data</div>
+              <div className="flex h-full items-center justify-center text-slate-500 dark:text-slate-400 font-medium">Belum ada data</div>
             )}
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border">
+        <Card className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border-white/50 dark:border-slate-700/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] transition-all duration-300">
           <CardHeader>
-            <CardTitle className="text-foreground">Tren Laporan Mingguan</CardTitle>
-            <CardDescription>Volume laporan yang masuk setiap harinya</CardDescription>
+            <CardTitle className="text-slate-800 dark:text-slate-100">Tren Laporan Mingguan</CardTitle>
+            <CardDescription className="text-slate-500 dark:text-slate-400">Volume laporan yang masuk setiap harinya</CardDescription>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dataTren}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-border)" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "currentColor", opacity: 0.7 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: "currentColor", opacity: 0.7 }} />
-                <RechartsTooltip contentStyle={{ backgroundColor: "var(--color-card)", borderColor: "var(--color-border)", color: "var(--color-foreground)" }} />
-                <Line type="monotone" dataKey="laporan" stroke="#f25922" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.2)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontWeight: 500, fontSize: 12 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: "#64748b", fontWeight: 500, fontSize: 12 }} />
+                <RechartsTooltip contentStyle={{ backgroundColor: "rgba(255, 255, 255, 0.8)", backdropFilter: "blur(8px)", borderColor: "rgba(255,255,255,0.5)", color: "#1e293b", borderRadius: "8px", fontWeight: "bold" }} />
+                <Line type="monotone" dataKey="laporan" stroke="#f97316" strokeWidth={4} dot={{ r: 4, fill: "#f97316", strokeWidth: 2, stroke: "#fff" }} activeDot={{ r: 6, fill: "#f97316", strokeWidth: 0 }} />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>

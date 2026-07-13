@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { getKategoriList, createKategori, updateKategori, getAllUsers } from "@/services/adminService";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Edit, Trash2, Settings, ListPlus, Clock, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { motion } from "framer-motion";
 
 export default function KelolaKategoriPage() {
   const [categories, setCategories] = useState([]);
@@ -18,11 +19,10 @@ export default function KelolaKategoriPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // Form State
   const [formData, setFormData] = useState({
     nama_kategori: "",
     sla_jam: 48,
-    petugas_id: "0" // "0" berarti unassigned
+    petugas_id: "0" 
   });
 
   const fetchData = async () => {
@@ -100,36 +100,36 @@ export default function KelolaKategoriPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-10">
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
       {/* Header section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border pb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-white/20 dark:border-slate-700/50 pb-6 mb-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 drop-shadow-sm transition-colors duration-300 flex items-center gap-2">
             Kelola Kategori
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-slate-600 dark:text-slate-300 mt-1 font-medium transition-colors duration-300">
             Atur kategori kerusakan dan tetapkan penanggung jawab (Petugas).
           </p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <Button onClick={openAddModal} className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2">
+          <Button onClick={openAddModal} className="bg-indigo-600 text-white hover:bg-indigo-700 font-semibold gap-2 shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 rounded-xl px-5">
             <Plus className="w-4 h-4" /> Tambah Kategori
           </Button>
           
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[425px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-white/50 dark:border-slate-700/50">
             <DialogHeader>
-              <DialogTitle>{editingId ? "Edit Kategori" : "Tambah Kategori Baru"}</DialogTitle>
+              <DialogTitle className="text-slate-900 dark:text-slate-100">{editingId ? "Edit Kategori" : "Tambah Kategori Baru"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="nama_kategori">Nama Kategori</Label>
-                <Input id="nama_kategori" name="nama_kategori" value={formData.nama_kategori} onChange={handleInputChange} required placeholder="Contoh: Elektrik, IT, Furnitur" />
+                <Label htmlFor="nama_kategori" className="text-slate-700 dark:text-slate-300">Nama Kategori</Label>
+                <Input id="nama_kategori" name="nama_kategori" value={formData.nama_kategori} onChange={handleInputChange} required placeholder="Contoh: Elektrik, IT, Furnitur" className="bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-slate-100" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="petugas_id">Petugas Penanggung Jawab</Label>
+                <Label htmlFor="petugas_id" className="text-slate-700 dark:text-slate-300">Petugas Penanggung Jawab</Label>
                 <Select value={formData.petugas_id} onValueChange={handlePetugasChange}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-slate-100">
                     <SelectValue placeholder="Pilih petugas" />
                   </SelectTrigger>
                   <SelectContent>
@@ -139,15 +139,15 @@ export default function KelolaKategoriPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">Jika diatur, laporan baru akan otomatis ditugaskan ke petugas ini.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Jika diatur, laporan baru akan otomatis ditugaskan ke petugas ini.</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sla_jam">SLA (Batas Waktu Penanganan - Jam)</Label>
-                <Input id="sla_jam" name="sla_jam" type="number" min="1" value={formData.sla_jam} onChange={handleInputChange} required />
+                <Label htmlFor="sla_jam" className="text-slate-700 dark:text-slate-300">SLA (Batas Waktu Penanganan - Jam)</Label>
+                <Input id="sla_jam" name="sla_jam" type="number" min="1" value={formData.sla_jam} onChange={handleInputChange} required className="bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-slate-100" />
               </div>
               <DialogFooter className="pt-4">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
-                <Button type="submit">Simpan</Button>
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="text-slate-700 dark:text-slate-300">Batal</Button>
+                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white">Simpan</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -155,49 +155,49 @@ export default function KelolaKategoriPage() {
       </div>
 
       {/* Main Container */}
-      <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl border border-white/50 dark:border-slate-700/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] rounded-3xl overflow-hidden transition-colors duration-300">
         {/* List Content */}
-        <div className="p-1">
+        <div className="p-2">
           {isLoading ? (
             <div className="flex justify-center items-center h-40">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
             </div>
           ) : categories.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                 <ListPlus className="w-8 h-8 text-muted-foreground" />
+              <div className="w-16 h-16 bg-white/50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4 border border-slate-200 dark:border-slate-700">
+                 <ListPlus className="w-8 h-8 text-slate-400 dark:text-slate-500" />
               </div>
-              <p className="text-muted-foreground">Belum ada kategori yang dibuat.</p>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">Belum ada kategori yang dibuat.</p>
             </div>
           ) : (
             <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow>
-                  <TableHead className="w-[80px]">ID</TableHead>
-                  <TableHead>Nama Kategori</TableHead>
-                  <TableHead>Penanggung Jawab</TableHead>
-                  <TableHead>SLA</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+              <TableHeader className="bg-transparent">
+                <TableRow className="border-b border-slate-200/50 dark:border-slate-700/50 hover:bg-transparent">
+                  <TableHead className="w-[80px] text-slate-500 dark:text-slate-400 font-bold uppercase text-xs tracking-wider">ID</TableHead>
+                  <TableHead className="text-slate-500 dark:text-slate-400 font-bold uppercase text-xs tracking-wider">Nama Kategori</TableHead>
+                  <TableHead className="text-slate-500 dark:text-slate-400 font-bold uppercase text-xs tracking-wider">Penanggung Jawab</TableHead>
+                  <TableHead className="text-slate-500 dark:text-slate-400 font-bold uppercase text-xs tracking-wider">SLA</TableHead>
+                  <TableHead className="text-right text-slate-500 dark:text-slate-400 font-bold uppercase text-xs tracking-wider">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {categories.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-medium text-muted-foreground">#{c.id}</TableCell>
-                    <TableCell className="font-semibold text-foreground">{c.nama_kategori}</TableCell>
+                  <TableRow key={c.id} className="border-b border-slate-100/50 dark:border-slate-800/50 hover:bg-white/80 dark:hover:bg-slate-800/50 transition-colors duration-300">
+                    <TableCell className="font-bold text-indigo-500 dark:text-indigo-400">#{c.id}</TableCell>
+                    <TableCell className="font-semibold text-slate-800 dark:text-slate-100">{c.nama_kategori}</TableCell>
                     <TableCell>
                       {c.petugas ? (
-                        <div className="flex items-center gap-2 text-sm font-medium">
-                          <UserCheck className="w-4 h-4 text-emerald-500" />
+                        <div className="flex items-center gap-2 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                          <UserCheck className="w-4 h-4" />
                           <span>{c.petugas.nama}</span>
                         </div>
                       ) : (
-                        <span className="text-muted-foreground text-sm italic">Belum ditugaskan</span>
+                        <span className="text-slate-500 dark:text-slate-400 text-sm italic">Belum ditugaskan</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="w-4 h-4" />
+                      <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 font-medium">
+                        <Clock className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                         {c.sla_jam} Jam
                       </div>
                     </TableCell>
@@ -205,7 +205,7 @@ export default function KelolaKategoriPage() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        className="text-foreground hover:bg-muted"
+                        className="text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50 rounded-full transition-all duration-300"
                         onClick={() => openEditModal(c)}
                       >
                         <Edit className="h-4 w-4" />

@@ -1,4 +1,6 @@
-﻿"use client";
+"use client";
+
+import Image from "next/image";
 
 import { useEffect, useState } from "react";
 import { getLaporanList } from "@/services/laporanService";
@@ -67,9 +69,25 @@ export function PetugasDashboard({ user }) {
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-border pb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard Petugas</h1>
-        <p className="text-muted-foreground">Kategori: {kategoriName}</p>
+      {/* Banner Section */}
+      <div className="relative w-full h-[200px] rounded-2xl overflow-hidden mb-8 shadow-sm">
+        <Image 
+          src="/dashboard_banner.png" 
+          alt="Dashboard Banner" 
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-transparent flex items-center">
+          <div className="p-8">
+            <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
+              Dashboard Petugas
+            </h1>
+            <p className="text-blue-100 mt-2 max-w-md">
+              Kategori: {kategoriName}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

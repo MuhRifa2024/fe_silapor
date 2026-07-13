@@ -8,7 +8,7 @@ import { getKategoriList } from "@/services/adminService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Trash2, Download, Zap, Droplet, Monitor, Sofa, Search, ClipboardList, Settings, X, Calendar as CalendarIcon } from "lucide-react";
+import { Eye, Trash2, Download, Zap, Droplet, Monitor, Sofa, Search, ClipboardList, Settings, X, Calendar as CalendarIcon, Plus } from "lucide-react";
 import { toast } from "sonner";
 import swal from "@/lib/swal";
 import { getAllUsers } from "@/services/adminService";
@@ -314,34 +314,28 @@ export default function LaporanPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("Berhasil mengekspor data laporan");
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-10">
-      {/* Header section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-border pb-6">
+    <div className="space-y-6 max-w-[1200px] mx-auto pb-10">
+      
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 drop-shadow-sm transition-colors duration-300">
             Semua Laporan
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <p className="text-slate-600 dark:text-slate-300 mt-1 font-medium transition-colors duration-300">
             Kelola seluruh pengaduan masuk
           </p>
         </div>
-        
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Link href="/laporan/buat">
-            <Button variant="outline" className="bg-card border-border text-foreground hover:bg-muted font-semibold transition-colors gap-2">
-              <span className="text-lg leading-none">+</span> Buat Laporan
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
+              <Plus className="mr-2 h-4 w-4" /> Buat Laporan
             </Button>
           </Link>
-          <Button 
-            variant="outline" 
-            className="bg-card border-border text-foreground hover:bg-muted transition-colors font-semibold"
-            onClick={handleExportCSV}
-          >
-            <Download className="w-4 h-4 mr-2" /> Export CSV
+          <Button variant="outline" className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all duration-300 text-slate-700 dark:text-slate-200">
+            <Download className="mr-2 h-4 w-4" /> Export CSV
           </Button>
         </div>
       </div>

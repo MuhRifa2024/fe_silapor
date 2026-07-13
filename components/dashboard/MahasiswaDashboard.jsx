@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -50,20 +51,32 @@ export function MahasiswaDashboard({ user }) {
 
   return (
     <div className="space-y-8 max-w-4xl pb-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-border">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Selamat datang, {username}
-          </p>
+      {/* Banner Section */}
+      <div className="relative w-full h-[200px] rounded-2xl overflow-hidden mb-8 shadow-sm">
+        <Image 
+          src="/dashboard_banner.png" 
+          alt="Dashboard Banner" 
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 to-transparent flex items-center">
+          <div className="p-8 w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
+                Dashboard
+              </h1>
+              <p className="text-blue-100 mt-2 max-w-md">
+                Selamat datang, {username}. Pantau laporan Anda atau buat laporan baru.
+              </p>
+            </div>
+            <Link href="/laporan/buat">
+              <Button className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm font-semibold transition-colors gap-2">
+                <Plus className="w-4 h-4" /> Buat Laporan
+              </Button>
+            </Link>
+          </div>
         </div>
-        <Link href="/laporan/buat">
-          <Button className="bg-card border border-border text-foreground hover:bg-muted font-semibold transition-colors gap-2">
-            <Plus className="w-4 h-4" /> Buat Laporan
-          </Button>
-        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

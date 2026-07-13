@@ -44,3 +44,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Dokumentasi (tidak perlu masuk repo)
+DOKUMENTASI.md
+DOKUMENTASI.pdf
+Dokumentasi Swagger SiLapor.pdf
+
+# Folder aset lokal
+/ASSETS/
