@@ -178,36 +178,41 @@ export function AdminDashboard({ user }) {
         {/* Distribusi per Kategori Chart */}
         <div>
           <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4 drop-shadow-sm">Distribusi per Kategori</h3>
-          <div className="bg-white/50 dark:bg-slate-900/60 backdrop-blur-xl border border-white/80 dark:border-slate-700/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] rounded-3xl p-6 h-[400px] transition-all duration-500 hover:bg-white/60 dark:hover:bg-slate-800/80 hover:shadow-2xl hover:shadow-indigo-500/10">
+          <div 
+            className="bg-white/50 dark:bg-slate-900/60 backdrop-blur-xl border border-white/80 dark:border-slate-700/50 shadow-[0_8px_30px_rgba(0,0,0,0.04)] rounded-3xl p-6 transition-all duration-500 hover:bg-white/60 dark:hover:bg-slate-800/80 hover:shadow-2xl hover:shadow-indigo-500/10 overflow-hidden overflow-y-auto custom-scrollbar"
+            style={{ height: "450px" }}
+          >
             {data.category_stats && data.category_stats.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={data.category_stats}
-                  margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
-                  barSize={16}
-                >
-                  <XAxis type="number" hide />
-                  <YAxis 
-                    dataKey="name" 
-                    type="category" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: isDark ? "#94a3b8" : "#475569", fontWeight: 600, fontSize: 12 }}
-                    width={90}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.4)" }}
-                    contentStyle={{ backgroundColor: isDark ? "rgba(15, 23, 42, 0.9)" : "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(8px)", borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.5)", color: isDark ? "#f1f5f9" : "#0f172a", borderRadius: "12px", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)", fontWeight: "bold" }}
-                    itemStyle={{ color: isDark ? "#818cf8" : "#4f46e5", fontWeight: "bold" }}
-                  />
-                  <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-                    {data.category_stats.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill === "#605bff" ? (isDark ? "#6366f1" : "#4f46e5") : entry.fill} className="transition-all duration-300 hover:opacity-80 drop-shadow-md" />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div style={{ height: `${Math.max(380, data.category_stats.length * 60)}px`, minHeight: '100%' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={data.category_stats}
+                    margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                    barSize={20}
+                  >
+                    <XAxis type="number" hide />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{ fill: isDark ? "#94a3b8" : "#475569", fontWeight: 600, fontSize: 12 }}
+                      width={180}
+                    />
+                    <Tooltip 
+                      cursor={{ fill: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.4)" }}
+                      contentStyle={{ backgroundColor: isDark ? "rgba(15, 23, 42, 0.9)" : "rgba(255, 255, 255, 0.9)", backdropFilter: "blur(8px)", borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.5)", color: isDark ? "#f1f5f9" : "#0f172a", borderRadius: "12px", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)", fontWeight: "bold" }}
+                      itemStyle={{ color: isDark ? "#818cf8" : "#4f46e5", fontWeight: "bold" }}
+                    />
+                    <Bar dataKey="value" radius={[0, 8, 8, 0]}>
+                      {data.category_stats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill === "#605bff" ? (isDark ? "#6366f1" : "#4f46e5") : entry.fill} className="transition-all duration-300 hover:opacity-80 drop-shadow-md" />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
               <p className="text-slate-500 dark:text-slate-400 font-medium text-center mt-20">Belum ada data kategori.</p>
             )}
