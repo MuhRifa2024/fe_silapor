@@ -91,11 +91,15 @@ export default function BuatLaporanPage() {
           <label className="text-sm font-semibold text-foreground">Kategori fasilitas <span className="text-destructive">*</span></label>
           <Select required value={kategoriId} onValueChange={setKategoriId}>
             <SelectTrigger className="bg-background border border-border text-foreground h-11 rounded-lg">
-              <SelectValue placeholder="Pilih kategori..." />
+              <SelectValue placeholder="Pilih kategori...">
+                {categories.find(cat => cat.id.toString() === kategoriId)?.nama_kategori}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-card border border-border">
               {categories.map(cat => (
-                <SelectItem key={cat.id} value={cat.id.toString()}>{cat.nama_kategori}</SelectItem>
+                <SelectItem key={cat.id} value={cat.id.toString()} label={cat.nama_kategori}>
+                  {cat.nama_kategori}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

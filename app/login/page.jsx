@@ -37,10 +37,14 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const response = await loginUser(data);
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      toast.success("Login berhasil!");
-      router.push("/dashboard");
+      if (response?.data?.token && response?.data?.user) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        toast.success("Login berhasil!");
+        window.location.href = "/dashboard";
+      } else {
+        toast.error(response?.message || "Gagal memproses respon login");
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || "Login gagal. Silakan periksa kembali kredensial Anda.");
     } finally {

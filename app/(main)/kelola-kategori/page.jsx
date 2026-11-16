@@ -156,12 +156,16 @@ export default function KelolaKategoriPage() {
                 <Label htmlFor="petugas_id" className="text-slate-700 dark:text-slate-300">Petugas Penanggung Jawab</Label>
                 <Select value={formData.petugas_id} onValueChange={handlePetugasChange}>
                   <SelectTrigger className="bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-slate-100">
-                    <SelectValue placeholder="Pilih petugas" />
+                    <SelectValue placeholder="Pilih petugas">
+                      {formData.petugas_id === "0" 
+                        ? "Tidak Ada (Manual Assignment)" 
+                        : petugasList.find(p => p.id.toString() === formData.petugas_id)?.nama}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="0">Tidak Ada (Manual Assignment)</SelectItem>
+                    <SelectItem value="0" label="Tidak Ada (Manual Assignment)">Tidak Ada (Manual Assignment)</SelectItem>
                     {petugasList.map(p => (
-                      <SelectItem key={p.id} value={p.id.toString()}>{p.nama}</SelectItem>
+                      <SelectItem key={p.id} value={p.id.toString()} label={p.nama}>{p.nama}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

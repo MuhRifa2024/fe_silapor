@@ -9,6 +9,7 @@ export default function Sidebar({ user, isOpen, setIsOpen }) {
   const pathname = usePathname();
   const isAdmin = user?.role === "admin";
   const isPetugas = user?.role === "petugas";
+  const isDosen = user?.role === "dosen";
   const isMahasiswa = user?.role === "mahasiswa" || !user?.role;
 
   // Configuration for Menu Sections
@@ -146,7 +147,7 @@ export default function Sidebar({ user, isOpen, setIsOpen }) {
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate capitalize">{user?.username || "M. Rizki"}</span>
               <span className="text-xs text-slate-500 dark:text-slate-400 truncate capitalize">
-                {isMahasiswa ? "Mahasiswa Aktif" : (user?.role || "Administrator")}
+                {isDosen ? "Dosen" : isMahasiswa ? "Mahasiswa Aktif" : (user?.role || "Administrator")}
               </span>
             </div>
           </div>

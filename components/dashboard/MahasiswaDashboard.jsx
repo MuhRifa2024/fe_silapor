@@ -16,10 +16,14 @@ const getCategoryIcon = (categoryName) => {
 
 const getStatusColor = (status) => {
   switch (status) {
-    case "dilaporkan": return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700";
-    case "ditugaskan": return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/50";
-    case "dikerjakan": return "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-500 border-amber-200 dark:border-amber-800/50";
-    case "selesai": return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50";
+    case "ditinjau":
+    case "dilaporkan": return "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-800";
+    case "diterima":
+    case "ditugaskan": return "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-800";
+    case "diproses":
+    case "dikerjakan": return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800";
+    case "selesai": return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800";
+    case "ditolak": return "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400 border-rose-200 dark:border-rose-800";
     default: return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700";
   }
 };
@@ -44,10 +48,10 @@ export function MahasiswaDashboard({ user }) {
   }, []);
 
   const total = laporan.length;
-  const diproses = laporan.filter(l => l.status === "ditugaskan" || l.status === "dikerjakan").length;
+  const diproses = laporan.filter(l => l.status === "ditinjau" || l.status === "diterima" || l.status === "diproses" || l.status === "ditugaskan" || l.status === "dikerjakan").length;
   const selesai = laporan.filter(l => l.status === "selesai").length;
 
-  const prioritasTinggi = laporan.find(l => l.prioritas === "tinggi" && l.status !== "selesai");
+  const prioritasTinggi = laporan.find(l => l.prioritas === "tinggi" && l.status !== "selesai" && l.status !== "ditolak");
 
   return (
     <div className="space-y-8 max-w-4xl pb-10">

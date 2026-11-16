@@ -24,10 +24,14 @@ const getCategoryIcon = (categoryName) => {
 
 const getStatusColor = (status) => {
   switch (status) {
-    case "dilaporkan": return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700";
-    case "ditugaskan": return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800/50";
-    case "dikerjakan": return "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-500 border-amber-200 dark:border-amber-800/50";
-    case "selesai": return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/50";
+    case "ditinjau":
+    case "dilaporkan": return "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-800";
+    case "diterima":
+    case "ditugaskan": return "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-800";
+    case "diproses":
+    case "dikerjakan": return "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800";
+    case "selesai": return "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800";
+    case "ditolak": return "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400 border-rose-200 dark:border-rose-800";
     default: return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700";
   }
 };
@@ -162,9 +166,12 @@ export default function LaporanPage() {
     return <div className="p-8 text-center text-muted-foreground animate-pulse">Memeriksa sesi...</div>;
   }
 
-  if (userRole === "mahasiswa") {
+  if (userRole === "mahasiswa" || userRole === "dosen") {
     const mahasiswaFiltered = laporan.filter((item) => {
-      const matchStatus = filterStatus === "semua" || item.status === filterStatus;
+      const matchStatus = filterStatus === "semua" || item.status === filterStatus ||
+        (filterStatus === "ditinjau" && item.status === "dilaporkan") ||
+        (filterStatus === "diterima" && item.status === "ditugaskan") ||
+        (filterStatus === "diproses" && item.status === "dikerjakan");
       return matchStatus;
     });
 
@@ -176,7 +183,7 @@ export default function LaporanPage() {
               Laporan Saya
             </h1>
             <p className="text-muted-foreground mt-1">
-              Pantau pengaduan yang kamu buat
+              Pantau pengaduan yang Anda buat
             </p>
           </div>
           <Link href="/laporan/buat">
@@ -190,14 +197,17 @@ export default function LaporanPage() {
           <div className="w-full sm:w-64">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="bg-background border border-border text-foreground rounded-lg h-10">
-                <SelectValue placeholder="Semua status" />
+                <SelectValue placeholder="Semua status">
+                  {filterStatus === "semua" ? "Semua status" : filterStatus ? filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1) : ""}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-card border border-border">
-                <SelectItem value="semua">Semua status</SelectItem>
-                <SelectItem value="dilaporkan">Dilaporkan</SelectItem>
-                <SelectItem value="ditugaskan">Ditugaskan</SelectItem>
-                <SelectItem value="dikerjakan">Dikerjakan</SelectItem>
-                <SelectItem value="selesai">Selesai</SelectItem>
+                <SelectItem value="semua" label="Semua status">Semua status</SelectItem>
+                <SelectItem value="ditinjau" label="Ditinjau">Ditinjau</SelectItem>
+                <SelectItem value="diterima" label="Diterima">Diterima</SelectItem>
+                <SelectItem value="diproses" label="Diproses">Diproses</SelectItem>
+                <SelectItem value="selesai" label="Selesai">Selesai</SelectItem>
+                <SelectItem value="ditolak" label="Ditolak">Ditolak</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -256,7 +266,10 @@ export default function LaporanPage() {
   const filteredLaporan = laporan.filter((item) => {
     const matchSearch = item.lokasi?.toLowerCase().includes(search.toLowerCase()) || 
                         item.deskripsi?.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === "semua" || item.status === filterStatus;
+    const matchStatus = filterStatus === "semua" || item.status === filterStatus ||
+      (filterStatus === "ditinjau" && item.status === "dilaporkan") ||
+      (filterStatus === "diterima" && item.status === "ditugaskan") ||
+      (filterStatus === "diproses" && item.status === "dikerjakan");
     const itemKategori = item.kategori?.nama_kategori?.toLowerCase() || "";
     const matchKategori = filterKategori === "semua" || itemKategori.includes(filterKategori);
     return matchSearch && matchStatus && matchKategori;
@@ -264,10 +277,14 @@ export default function LaporanPage() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "dilaporkan": return <span className="px-3 py-1 bg-background text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-full text-xs font-semibold">Dilaporkan</span>;
-      case "ditugaskan": return <span className="px-3 py-1 bg-background text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-800 rounded-full text-xs font-semibold">Ditugaskan</span>;
-      case "dikerjakan": return <span className="px-3 py-1 bg-background text-amber-600 dark:text-amber-500 border border-amber-300 dark:border-amber-800 rounded-full text-xs font-semibold">Dikerjakan</span>;
+      case "ditinjau":
+      case "dilaporkan": return <span className="px-3 py-1 bg-background text-amber-600 dark:text-amber-400 border border-amber-300 dark:border-amber-800 rounded-full text-xs font-semibold">Ditinjau</span>;
+      case "diterima":
+      case "ditugaskan": return <span className="px-3 py-1 bg-background text-blue-600 dark:text-blue-400 border border-blue-300 dark:border-blue-800 rounded-full text-xs font-semibold">Diterima</span>;
+      case "diproses":
+      case "dikerjakan": return <span className="px-3 py-1 bg-background text-indigo-600 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-800 rounded-full text-xs font-semibold">Diproses</span>;
       case "selesai": return <span className="px-3 py-1 bg-background text-emerald-600 dark:text-emerald-500 border border-emerald-300 dark:border-emerald-800 rounded-full text-xs font-semibold">Selesai</span>;
+      case "ditolak": return <span className="px-3 py-1 bg-background text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-800 rounded-full text-xs font-semibold">Ditolak</span>;
       default: return <span className="px-3 py-1 bg-background text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-full text-xs font-semibold">{status}</span>;
     }
   };
@@ -352,26 +369,33 @@ export default function LaporanPage() {
           <div className="w-48">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="bg-background border-border text-foreground h-11 rounded-xl font-medium">
-                <SelectValue placeholder="Semua status" />
+                <SelectValue placeholder="Semua status">
+                  {filterStatus === "semua" ? "Semua status" : filterStatus ? filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1) : ""}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="semua">Semua status</SelectItem>
-                <SelectItem value="dilaporkan">Dilaporkan</SelectItem>
-                <SelectItem value="ditugaskan">Ditugaskan</SelectItem>
-                <SelectItem value="dikerjakan">Dikerjakan</SelectItem>
-                <SelectItem value="selesai">Selesai</SelectItem>
+                <SelectItem value="semua" label="Semua status">Semua status</SelectItem>
+                <SelectItem value="ditinjau" label="Ditinjau">Ditinjau</SelectItem>
+                <SelectItem value="diterima" label="Diterima">Diterima</SelectItem>
+                <SelectItem value="diproses" label="Diproses">Diproses</SelectItem>
+                <SelectItem value="selesai" label="Selesai">Selesai</SelectItem>
+                <SelectItem value="ditolak" label="Ditolak">Ditolak</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <div className="w-48">
             <Select value={filterKategori} onValueChange={setFilterKategori}>
               <SelectTrigger className="bg-background border-border text-foreground h-11 rounded-xl font-medium">
-                <SelectValue placeholder="Semua kategori" />
+                <SelectValue placeholder="Semua kategori">
+                  {filterKategori === "semua"
+                    ? "Semua kategori"
+                    : categories.find(c => c.nama_kategori.toLowerCase() === filterKategori.toLowerCase())?.nama_kategori || filterKategori}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="semua">Semua kategori</SelectItem>
+                <SelectItem value="semua" label="Semua kategori">Semua kategori</SelectItem>
                 {categories.map((c) => (
-                  <SelectItem key={c.id} value={c.nama_kategori.toLowerCase()}>
+                  <SelectItem key={c.id} value={c.nama_kategori.toLowerCase()} label={c.nama_kategori}>
                     {c.nama_kategori}
                   </SelectItem>
                 ))}

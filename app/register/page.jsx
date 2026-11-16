@@ -82,8 +82,8 @@ export default function RegisterPage() {
           <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mt-4">
             Buat Akun
           </h2>
-          <p className="text-slate-600 text-lg">
-            Daftar untuk mengakses platform pelaporan SiLapor.
+          <p className="text-slate-600 text-sm">
+            Khusus registrasi mandiri untuk <strong className="font-semibold text-slate-800">Mahasiswa</strong>. Akun Dosen dan Petugas diberikan oleh Admin.
           </p>
         </div>
 

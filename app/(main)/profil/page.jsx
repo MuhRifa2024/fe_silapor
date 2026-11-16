@@ -35,7 +35,8 @@ export default function ProfilPage() {
     switch (role) {
       case "admin": return "Administrator";
       case "petugas": return "Teknisi / Petugas";
-      case "mahasiswa": return "Mahasiswa";
+      case "mahasiswa": return "Mahasiswa (Pelapor)";
+      case "dosen": return "Dosen (Pelapor)";
       default: return "Pengguna";
     }
   };

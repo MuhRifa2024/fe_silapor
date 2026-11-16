@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -23,7 +23,7 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {user.role === "mahasiswa" ? (
+      {user.role === "mahasiswa" || user.role === "dosen" ? (
         <MahasiswaDashboard user={user} />
       ) : user.role === "petugas" ? (
         <PetugasDashboard user={user} />

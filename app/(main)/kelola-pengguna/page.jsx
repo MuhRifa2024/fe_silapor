@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, Users, Search, Shield, UserCog, GraduationCap } from "lucide-react";
+import { Plus, Trash2, Users, Search, Shield, UserCog, GraduationCap, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import swal from "@/lib/swal";
@@ -94,6 +94,7 @@ export default function KelolaPenggunaPage() {
       case "admin": return <Shield className="w-4 h-4 text-rose-500" />;
       case "petugas": return <UserCog className="w-4 h-4 text-indigo-500" />;
       case "mahasiswa": return <GraduationCap className="w-4 h-4 text-emerald-500" />;
+      case "dosen": return <BookOpen className="w-4 h-4 text-amber-500" />;
       default: return <Users className="w-4 h-4 text-slate-500" />;
     }
   };
@@ -103,6 +104,7 @@ export default function KelolaPenggunaPage() {
       case "admin": return <span className="px-2.5 py-1 bg-rose-100/80 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300 rounded-full text-xs font-bold border border-rose-200 dark:border-rose-800 shadow-sm">Admin</span>;
       case "petugas": return <span className="px-2.5 py-1 bg-indigo-100/80 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 rounded-full text-xs font-bold border border-indigo-200 dark:border-indigo-800 shadow-sm">Petugas</span>;
       case "mahasiswa": return <span className="px-2.5 py-1 bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300 rounded-full text-xs font-bold border border-emerald-200 dark:border-emerald-800 shadow-sm">Mahasiswa</span>;
+      case "dosen": return <span className="px-2.5 py-1 bg-amber-100/80 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300 rounded-full text-xs font-bold border border-amber-200 dark:border-amber-800 shadow-sm">Dosen</span>;
       default: return <span className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold shadow-sm">{role}</span>;
     }
   };
@@ -116,7 +118,7 @@ export default function KelolaPenggunaPage() {
             Kelola Pengguna
           </h1>
           <p className="text-slate-600 dark:text-slate-300 mt-1 font-medium transition-colors duration-300">
-            Tambahkan dan kelola akun Petugas, Admin, atau Mahasiswa.
+            Tambahkan dan kelola akun Petugas, Admin, Dosen, atau Mahasiswa.
           </p>
         </div>
         
@@ -134,8 +136,16 @@ export default function KelolaPenggunaPage() {
                 <Input id="nama" name="nama" value={formData.nama} onChange={handleInputChange} required placeholder="Masukkan nama lengkap" className="bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-slate-100" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-slate-700 dark:text-slate-300">Username</Label>
-                <Input id="username" name="username" value={formData.username} onChange={handleInputChange} required placeholder="Masukkan username" className="bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-slate-100" />
+                <Label htmlFor="username" className="text-slate-700 dark:text-slate-300">Username / Inisial</Label>
+                <Input 
+                  id="username" 
+                  name="username" 
+                  value={formData.username} 
+                  onChange={handleInputChange} 
+                  required 
+                  placeholder={formData.role === "dosen" ? "Inisial dosen (KML, RFA) atau NIDN" : "Masukkan username / NIM"} 
+                  className="bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-slate-100" 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-slate-700 dark:text-slate-300">Password</Label>
@@ -145,12 +155,15 @@ export default function KelolaPenggunaPage() {
                 <Label htmlFor="role" className="text-slate-700 dark:text-slate-300">Peran (Role)</Label>
                 <Select value={formData.role} onValueChange={handleRoleChange}>
                   <SelectTrigger className="bg-white/50 dark:bg-slate-950/50 text-slate-900 dark:text-slate-100">
-                    <SelectValue placeholder="Pilih peran" />
+                    <SelectValue placeholder="Pilih peran">
+                      {formData.role ? formData.role.charAt(0).toUpperCase() + formData.role.slice(1) : ""}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="petugas">Petugas</SelectItem>
-                    <SelectItem value="mahasiswa">Mahasiswa</SelectItem>
+                    <SelectItem value="dosen" label="Dosen (Pelapor)">Dosen (Pelapor)</SelectItem>
+                    <SelectItem value="petugas" label="Petugas">Petugas</SelectItem>
+                    <SelectItem value="admin" label="Admin">Admin</SelectItem>
+                    <SelectItem value="mahasiswa" label="Mahasiswa (Pelapor)">Mahasiswa (Pelapor)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
