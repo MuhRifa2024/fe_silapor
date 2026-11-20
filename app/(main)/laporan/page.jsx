@@ -8,7 +8,7 @@ import { getKategoriList } from "@/services/adminService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Trash2, Download, Zap, Droplet, Monitor, Sofa, Search, ClipboardList, Settings, X, AlertTriangle, Plus, Users, GraduationCap, BookOpen, Briefcase } from "lucide-react";
+import { Eye, Trash2, Download, Zap, Droplet, Monitor, Sofa, Search, ClipboardList, Settings, X, AlertTriangle, Plus, Users, GraduationCap, BookOpen, Briefcase, Shield, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import swal from "@/lib/swal";
 import { getAllUsers } from "@/services/adminService";
@@ -313,6 +313,7 @@ function LaporanContent() {
   const countMhs = laporan.filter((l) => (l.pelapor?.role || "mahasiswa") === "mahasiswa").length;
   const countDsn = laporan.filter((l) => l.pelapor?.role === "dosen").length;
   const countStf = laporan.filter((l) => l.pelapor?.role === "staff").length;
+  const countAdm = laporan.filter((l) => l.pelapor?.role === "admin").length;
   const countLate = laporan.filter((l) => isReportLate(l)).length;
 
   const filteredLaporan = laporan.filter((item) => {
@@ -363,6 +364,12 @@ function LaporanContent() {
 
   const getRolePelaporBadge = (role) => {
     switch (role) {
+      case "admin":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+            <Shield className="w-3 h-3" /> Admin
+          </span>
+        );
       case "dosen":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
@@ -373,6 +380,12 @@ function LaporanContent() {
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
             <Briefcase className="w-3 h-3" /> Staff
+          </span>
+        );
+      case "petugas":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+            <UserCog className="w-3 h-3" /> Petugas
           </span>
         );
       case "mahasiswa":
@@ -518,6 +531,22 @@ function LaporanContent() {
                 {countStf}
               </span>
             </button>
+
+            {countAdm > 0 && (
+              <button
+                onClick={() => setActiveRoleTab("admin")}
+                className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
+                  activeRoleTab === "admin"
+                    ? "border-rose-600 text-rose-600 dark:text-rose-400"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Shield className="w-4 h-4 text-rose-500" /> Admin
+                <span className="px-2 py-0.5 rounded-full text-[10px] bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 font-semibold">
+                  {countAdm}
+                </span>
+              </button>
+            )}
           </div>
         )}
 

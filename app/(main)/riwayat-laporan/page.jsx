@@ -8,7 +8,7 @@ import { getKategoriList } from "@/services/adminService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, Download, Zap, Droplet, Monitor, Sofa, Search, CheckCircle2, XCircle, Star, GraduationCap, BookOpen, Briefcase, Calendar, Clock, AlertCircle } from "lucide-react";
+import { Eye, Download, Zap, Droplet, Monitor, Sofa, Search, CheckCircle2, XCircle, Star, GraduationCap, BookOpen, Briefcase, Calendar, Clock, AlertCircle, Shield, UserCog } from "lucide-react";
 import { toast } from "sonner";
 
 const getCategoryIcon = (categoryName) => {
@@ -64,6 +64,12 @@ function RiwayatLaporanContent() {
 
   const getRolePelaporBadge = (role) => {
     switch (role) {
+      case "admin":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
+            <Shield className="w-3 h-3" /> Admin
+          </span>
+        );
       case "dosen":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
@@ -74,6 +80,12 @@ function RiwayatLaporanContent() {
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
             <Briefcase className="w-3 h-3" /> Staff
+          </span>
+        );
+      case "petugas":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+            <UserCog className="w-3 h-3" /> Petugas
           </span>
         );
       case "mahasiswa":
