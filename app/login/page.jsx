@@ -110,7 +110,12 @@ export default function LoginPage() {
                 {errors.username && <p className="text-red-500 text-sm">{errors.username.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-indigo-900/70 text-xs font-bold uppercase tracking-wider">PASSWORD</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-indigo-900/70 text-xs font-bold uppercase tracking-wider">PASSWORD</Label>
+                  <Link href="/lupa-password" className="text-xs text-indigo-600 hover:text-indigo-500 hover:underline font-semibold transition-colors">
+                    Lupa Password?
+                  </Link>
+                </div>
                 <div className="relative">
                   <Input
                     id="password"

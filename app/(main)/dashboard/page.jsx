@@ -23,7 +23,7 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {user.role === "mahasiswa" || user.role === "dosen" ? (
+      {user.role === "mahasiswa" || user.role === "dosen" || user.role === "staff" ? (
         <MahasiswaDashboard user={user} />
       ) : user.role === "petugas" ? (
         <PetugasDashboard user={user} />

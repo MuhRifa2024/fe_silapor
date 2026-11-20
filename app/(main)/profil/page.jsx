@@ -1,15 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, User, Lock, Eye, EyeOff } from "lucide-react";
+import { Check, User, Lock, Eye, EyeOff, Mail, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { changePassword } from "@/services/authService";
+import { changePassword, updateProfileEmail } from "@/services/authService";
+import PasswordStrengthIndicator, { isPasswordStrong } from "@/components/ui/PasswordStrengthIndicator";
 
 export default function ProfilPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Email state
+  const [email, setEmail] = useState("");
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+
+  // Password state
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,7 +29,13 @@ export default function ProfilPage() {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser && storedUser !== "undefined") {
-      setUser(JSON.parse(storedUser));
+      try {
+        const parsed = JSON.parse(storedUser);
+        setUser(parsed);
+        setEmail(parsed.email || "");
+      } catch (e) {
+        console.error("Invalid user JSON", e);
+      }
     }
     setLoading(false);
   }, []);
@@ -37,7 +51,31 @@ export default function ProfilPage() {
       case "petugas": return "Teknisi / Petugas";
       case "mahasiswa": return "Mahasiswa (Pelapor)";
       case "dosen": return "Dosen (Pelapor)";
+      case "staff": return "Staff Kampus (Pelapor)";
       default: return "Pengguna";
+    }
+  };
+
+  const handleEmailSave = async (e) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      toast.error("Alamat email tidak boleh kosong");
+      return;
+    }
+
+    setIsUpdatingEmail(true);
+    try {
+      const res = await updateProfileEmail({ email: email.trim() });
+      toast.success("Email pemulihan akun berhasil disimpan!");
+      if (res.data) {
+        const updatedUser = { ...user, email: res.data.email };
+        setUser(updatedUser);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Gagal menyimpan email pemulihan");
+    } finally {
+      setIsUpdatingEmail(false);
     }
   };
 
@@ -51,8 +89,8 @@ export default function ProfilPage() {
       toast.error("Password baru dan konfirmasi tidak cocok");
       return;
     }
-    if (newPassword.length < 6) {
-      toast.error("Password baru minimal 6 karakter");
+    if (!isPasswordStrong(newPassword)) {
+      toast.error("Password baru harus memenuhi seluruh kombinasi kriteria keamanan");
       return;
     }
 
@@ -67,7 +105,7 @@ export default function ProfilPage() {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error) {
-      toast.error(error.response?.data?.error || "Gagal mengubah password. Pastikan password lama benar.");
+      toast.error(error.response?.data?.message || error.response?.data?.error || "Gagal mengubah password. Pastikan password lama benar.");
     } finally {
       setIsSubmitting(false);
     }
@@ -82,7 +120,7 @@ export default function ProfilPage() {
       {/* Page Header */}
       <div className="border-b border-border pb-5">
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Profil Saya</h1>
-        <p className="text-muted-foreground mt-1">Informasi akun dan keamanan</p>
+        <p className="text-muted-foreground mt-1">Informasi akun, email pemulihan, dan keamanan</p>
       </div>
 
       {/* Profile Card */}
@@ -105,18 +143,63 @@ export default function ProfilPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground">Nama Lengkap</label>
-              <div className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2.5 text-foreground text-sm">
+              <div className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2.5 text-foreground text-sm font-medium">
                 {user?.nama || "-"}
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-muted-foreground">Username / NIM</label>
-              <div className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2.5 text-foreground text-sm">
+              <label className="text-xs font-semibold text-muted-foreground">Username / Inisial</label>
+              <div className="w-full bg-muted/50 border border-border rounded-xl px-4 py-2.5 text-foreground text-sm font-medium">
                 {user?.username || "-"}
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Email Pemulihan Card */}
+      <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+            <Mail className="w-4 h-4" /> Email Pemulihan Sandi
+          </h3>
+          {user?.email ? (
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-full px-2.5 py-0.5">
+              Terhubung
+            </span>
+          ) : (
+            <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-full px-2.5 py-0.5">
+              Belum Diisi
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs text-muted-foreground mb-4">
+          Email ini digunakan untuk menerima kode verifikasi OTP saat Anda lupa kata sandi. Pastikan menggunakan email aktif.
+        </p>
+
+        <form onSubmit={handleEmailSave} className="space-y-3">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Input
+                type="email"
+                placeholder="nama@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-background border-border text-foreground h-11 rounded-xl pl-10"
+                required
+              />
+              <Mail className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
+            </div>
+            <Button
+              type="submit"
+              disabled={isUpdatingEmail}
+              className="h-11 rounded-xl px-5 font-semibold bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              {isUpdatingEmail ? "Menyimpan..." : "Simpan Email"}
+            </Button>
+          </div>
+        </form>
       </div>
 
       {/* Change Password Card */}
@@ -149,7 +232,7 @@ export default function ProfilPage() {
             <div className="relative">
               <input
                 type={showNew ? "text" : "password"}
-                placeholder="Minimal 6 karakter..."
+                placeholder="Minimal 8 karakter kombinasi..."
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full bg-background border border-border rounded-xl px-4 py-2.5 pr-11 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -158,6 +241,7 @@ export default function ProfilPage() {
                 {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+            <PasswordStrengthIndicator password={newPassword} />
           </div>
 
           {/* Confirm Password */}
@@ -177,28 +261,10 @@ export default function ProfilPage() {
             </div>
           </div>
 
-          {/* Strength indicator */}
-          {newPassword.length > 0 && (
-            <div className="space-y-1">
-              <div className="flex gap-1">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${
-                    newPassword.length >= i * 3
-                      ? newPassword.length >= 8 ? "bg-emerald-500" : "bg-amber-500"
-                      : "bg-muted"
-                  }`} />
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {newPassword.length < 6 ? "Terlalu pendek" : newPassword.length < 8 ? "Cukup" : "Kuat"}
-              </p>
-            </div>
-          )}
-
           <div className="pt-2 flex justify-end">
-            <Button type="submit" disabled={isSubmitting} className="rounded-xl font-semibold gap-2">
+            <Button type="submit" disabled={isSubmitting} className="rounded-xl font-semibold gap-2 bg-indigo-600 hover:bg-indigo-700 text-white">
               <Check className="w-4 h-4" />
-              {isSubmitting ? "Menyimpan..." : "Simpan Password"}
+              {isSubmitting ? "Menyimpan..." : "Simpan Password Baru"}
             </Button>
           </div>
         </form>

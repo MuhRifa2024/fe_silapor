@@ -1,7 +1,7 @@
 import api from './api';
 
-export const getLaporanList = async () => {
-  const response = await api.get('/laporan');
+export const getLaporanList = async (params = {}) => {
+  const response = await api.get('/laporan', { params });
   return response.data;
 };
 

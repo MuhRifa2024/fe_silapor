@@ -10,7 +10,8 @@ export default function Sidebar({ user, isOpen, setIsOpen }) {
   const isAdmin = user?.role === "admin";
   const isPetugas = user?.role === "petugas";
   const isDosen = user?.role === "dosen";
-  const isMahasiswa = user?.role === "mahasiswa" || !user?.role;
+  const isStaff = user?.role === "staff";
+  const isMahasiswa = user?.role === "mahasiswa" || (!isAdmin && !isPetugas && !isDosen && !isStaff);
 
   // Configuration for Menu Sections
   const menuSections = [];
@@ -20,7 +21,8 @@ export default function Sidebar({ user, isOpen, setIsOpen }) {
       title: "Menu Utama",
       items: [
         { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { name: "Semua Laporan", href: "/laporan", icon: ClipboardList, badge: "5" },
+        { name: "Semua Laporan", href: "/laporan", icon: ClipboardList },
+        { name: "Riwayat Laporan", href: "/riwayat-laporan", icon: History },
       ]
     });
     menuSections.push({
@@ -147,7 +149,7 @@ export default function Sidebar({ user, isOpen, setIsOpen }) {
             <div className="flex flex-col min-w-0">
               <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate capitalize">{user?.username || "M. Rizki"}</span>
               <span className="text-xs text-slate-500 dark:text-slate-400 truncate capitalize">
-                {isDosen ? "Dosen" : isMahasiswa ? "Mahasiswa Aktif" : (user?.role || "Administrator")}
+                {isStaff ? "Staff Kampus" : isDosen ? "Dosen" : isMahasiswa ? "Mahasiswa Aktif" : (user?.role || "Administrator")}
               </span>
             </div>
           </div>

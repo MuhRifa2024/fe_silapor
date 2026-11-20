@@ -28,7 +28,18 @@ export default function Header({ user, setIsOpen }) {
   useEffect(() => {
     fetchNotifikasi();
     const interval = setInterval(fetchNotifikasi, 30000); 
-    return () => clearInterval(interval);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchNotifikasi();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -40,6 +51,16 @@ export default function Header({ user, setIsOpen }) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleNotificationClick = async (notif) => {
+    if (!notif.is_read) {
+      await handleMarkAsRead(notif.id);
+    }
+    if (notif.laporan_id) {
+      setIsDropdownOpen(false);
+      router.push(`/laporan/tracking/${notif.laporan_id}`);
+    }
+  };
 
   const handleMarkAsRead = async (id) => {
     try {
@@ -118,7 +139,7 @@ export default function Header({ user, setIsOpen }) {
                     </div>
                   ) : (
                     notifications.map(n => (
-                      <div key={n.id} className={`p-4 border-b border-slate-100/50 dark:border-slate-800/50 hover:bg-white/60 dark:hover:bg-slate-800/60 cursor-pointer flex gap-3 transition-colors ${!n.is_read ? 'bg-indigo-50/40 dark:bg-indigo-900/20' : ''}`} onClick={() => !n.is_read && handleMarkAsRead(n.id)}>
+                      <div key={n.id} className={`p-4 border-b border-slate-100/50 dark:border-slate-800/50 hover:bg-white/60 dark:hover:bg-slate-800/60 cursor-pointer flex gap-3 transition-colors ${!n.is_read ? 'bg-indigo-50/40 dark:bg-indigo-900/20' : ''}`} onClick={() => handleNotificationClick(n)}>
                         <div className={`mt-0.5 ${!n.is_read ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>
                           <CheckCircle2 className="w-5 h-5" />
                         </div>
