@@ -535,30 +535,40 @@ function LaporanContent() {
           </div>
 
           {/* Filter Status Aktif */}
-          <div className="w-44">
+          <div className="w-48">
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="bg-background border-border h-10 rounded-xl text-xs font-semibold">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder="Status">
+                  {filterStatus === "semua"
+                    ? "Semua Status Aktif"
+                    : filterStatus
+                    ? filterStatus.charAt(0).toUpperCase() + filterStatus.slice(1)
+                    : ""}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="semua">Semua Status Aktif</SelectItem>
-                <SelectItem value="ditinjau">Ditinjau</SelectItem>
-                <SelectItem value="diterima">Diterima</SelectItem>
-                <SelectItem value="diproses">Diproses</SelectItem>
+                <SelectItem value="semua" label="Semua Status Aktif">Semua Status Aktif</SelectItem>
+                <SelectItem value="ditinjau" label="Ditinjau">Ditinjau</SelectItem>
+                <SelectItem value="diterima" label="Diterima">Diterima</SelectItem>
+                <SelectItem value="diproses" label="Diproses">Diproses</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Filter Kategori */}
-          <div className="w-44">
+          <div className="w-56">
             <Select value={filterKategori} onValueChange={setFilterKategori}>
               <SelectTrigger className="bg-background border-border h-10 rounded-xl text-xs font-semibold">
-                <SelectValue placeholder="Kategori" />
+                <SelectValue placeholder="Kategori">
+                  {filterKategori === "semua"
+                    ? "Semua Kategori"
+                    : categories.find((c) => String(c.id) === String(filterKategori))?.nama_kategori || filterKategori}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="semua">Semua Kategori</SelectItem>
+                <SelectItem value="semua" label="Semua Kategori">Semua Kategori</SelectItem>
                 {categories.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
+                  <SelectItem key={c.id} value={String(c.id)} label={c.nama_kategori}>
                     {c.nama_kategori}
                   </SelectItem>
                 ))}

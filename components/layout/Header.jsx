@@ -1,33 +1,215 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { Menu, LogOut, User, Bell, CheckCircle2 } from "lucide-react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { Menu, LogOut, User, Bell, CheckCircle2, Volume2, ShieldCheck, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { getNotifikasi, markAsRead, markAllAsRead } from "@/services/notifikasiService";
+import { toast } from "sonner";
+
+// Shared AudioContext instance (di-unlock otomatis oleh interaksi pertama pengguna)
+let globalAudioCtx = null;
+
+const getUnlockedAudioContext = () => {
+  if (typeof window === "undefined") return null;
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return null;
+  if (!globalAudioCtx) {
+    globalAudioCtx = new AudioCtx();
+  }
+  if (globalAudioCtx.state === "suspended") {
+    globalAudioCtx.resume().catch(() => {});
+  }
+  return globalAudioCtx;
+};
 
 export default function Header({ user, setIsOpen }) {
   const router = useRouter();
   const [notifications, setNotifications] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [browserPermission, setBrowserPermission] = useState("default");
   const dropdownRef = useRef(null);
 
-  const fetchNotifikasi = async () => {
+  // Helper membaca ID notifikasi yang sudah pernah di-pop-up di sesi browser ini
+  const getShownNotifIds = () => {
     try {
-      const res = await getNotifikasi();
-      const list = res.data?.data;
-      if (Array.isArray(list)) setNotifications(list);
-    } catch (error) {
-      console.error("Gagal memuat notifikasi", error);
+      if (typeof window === "undefined") return [];
+      const raw = sessionStorage.getItem("silapor_shown_notifs");
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
     }
   };
 
+  const markNotifAsShown = (id) => {
+    try {
+      if (typeof window === "undefined") return;
+      const list = getShownNotifIds();
+      if (!list.includes(id)) {
+        list.push(id);
+        sessionStorage.setItem("silapor_shown_notifs", JSON.stringify(list.slice(-100)));
+      }
+    } catch (e) {}
+  };
+
+  // Bunyikan nada dering notifikasi (Web Audio API)
+  const playNotificationSound = useCallback(() => {
+    try {
+      const ctx = getUnlockedAudioContext();
+      if (!ctx) return;
+
+      const playTone = () => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        // Dua nada lembut (E5 659Hz -> A5 880Hz)
+        osc.frequency.setValueAtTime(659.25, ctx.currentTime);
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.08);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      };
+
+      if (ctx.state === "suspended") {
+        ctx.resume().then(playTone).catch(() => {});
+      } else {
+        playTone();
+      }
+    } catch (e) {}
+  }, []);
+
+  // Meminta izin Notifikasi Desktop secara resmi dengan gesture klik
+  const requestDesktopPermission = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      toast.info("Browser Anda tidak mendukung notifikasi desktop");
+      return;
+    }
+    try {
+      const perm = await Notification.requestPermission();
+      setBrowserPermission(perm);
+      if (perm === "granted") {
+        toast.success("Notifikasi push browser berhasil diaktifkan!");
+        playNotificationSound();
+        try {
+          new Notification("SiLapor - Siap Menerima Notifikasi", {
+            body: "Notifikasi push desktop aktif untuk akun " + (user?.username || ""),
+            icon: "/dashboard_banner.png"
+          });
+        } catch (e) {}
+      } else if (perm === "denied") {
+        toast.warning("Izin notifikasi ditolak di browser. Anda dapat mengaktifkannya di pengaturan browser.");
+      }
+    } catch (e) {
+      console.error("Gagal meminta izin notifikasi", e);
+    }
+  };
+
+  // Fungsi tes suara dan notifikasi (untuk verifikasi langsung pengguna)
+  const handleTestNotification = () => {
+    playNotificationSound();
+    toast.info("🔔 Tes Notifikasi Push SiLapor", {
+      description: "Suara chime dan in-app toast berfungsi normal!",
+      duration: 5000,
+      action: {
+        label: "Oke",
+        onClick: () => {}
+      }
+    });
+
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+      try {
+        new Notification("SiLapor - Tes Notifikasi", {
+          body: "Push notification desktop berhasil diterima!",
+          icon: "/dashboard_banner.png"
+        });
+      } catch (e) {}
+    }
+  };
+
+  const fetchNotifikasi = useCallback(async () => {
+    if (typeof window === "undefined" || !localStorage.getItem("token")) return;
+    try {
+      const res = await getNotifikasi();
+      const list = res.data?.data;
+      if (Array.isArray(list)) {
+        setNotifications(list);
+
+        // Ambil ID yang sudah pernah ditampilkan toast di sesi browser ini
+        const shownIds = new Set(getShownNotifIds());
+        const newUnread = list.filter(n => !n.is_read && !shownIds.has(n.id));
+
+        if (newUnread.length > 0) {
+          playNotificationSound();
+
+          // Batasi maksimal 2 notifikasi sekaligus agar tidak tumpang tindih
+          const toPop = newUnread.slice(0, 2);
+          toPop.forEach(n => {
+            markNotifAsShown(n.id);
+
+            // 1. In-App Toast Push (Sonner)
+            toast.info(n.pesan, {
+              description: "Notifikasi baru SiLapor",
+              duration: 7000,
+              action: n.laporan_id ? {
+                label: "Buka",
+                onClick: () => router.push(`/laporan/tracking/${n.laporan_id}`)
+              } : undefined,
+            });
+
+            // 2. Native Desktop Push Notification
+            if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+              try {
+                const nativeNotif = new Notification("SiLapor - Notifikasi Baru", {
+                  body: n.pesan,
+                  icon: "/dashboard_banner.png",
+                });
+                nativeNotif.onclick = () => {
+                  window.focus();
+                  if (n.laporan_id) {
+                    router.push(`/laporan/tracking/${n.laporan_id}`);
+                  }
+                };
+              } catch (err) {}
+            }
+          });
+
+          // Tandai sisanya agar tidak spam berulang
+          if (newUnread.length > 2) {
+            newUnread.slice(2).forEach(n => markNotifAsShown(n.id));
+          }
+        }
+      }
+    } catch (error) {
+      if (error?.response?.status !== 401) {
+        console.error("Gagal memuat notifikasi", error);
+      }
+    }
+  }, [playNotificationSound, router]);
+
   useEffect(() => {
+    // Cek status izin notifikasi saat ini
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setBrowserPermission(Notification.permission);
+    }
+
+    // Listener unlock audio pada interaksi pertama kali oleh user
+    const unlockAudio = () => {
+      getUnlockedAudioContext();
+    };
+    window.addEventListener("click", unlockAudio, { passive: true });
+    window.addEventListener("keydown", unlockAudio, { passive: true });
+    window.addEventListener("touchstart", unlockAudio, { passive: true });
+
     fetchNotifikasi();
-    const interval = setInterval(fetchNotifikasi, 30000); 
+
+    // Polling setiap 5 detik agar terasa live / push real-time
+    const interval = setInterval(fetchNotifikasi, 5000); 
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
@@ -36,11 +218,21 @@ export default function Header({ user, setIsOpen }) {
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
+    // Listener event kustom agar notifikasi langsung ter-fetch saat ada aksi kirim/update
+    const handleCustomRefresh = () => {
+      fetchNotifikasi();
+    };
+    window.addEventListener("silapor-notif-refresh", handleCustomRefresh);
+
     return () => {
       clearInterval(interval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("silapor-notif-refresh", handleCustomRefresh);
+      window.removeEventListener("click", unlockAudio);
+      window.removeEventListener("keydown", unlockAudio);
+      window.removeEventListener("touchstart", unlockAudio);
     };
-  }, []);
+  }, [fetchNotifikasi]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -100,16 +292,22 @@ export default function Header({ user, setIsOpen }) {
 
       <div className="ml-auto flex items-center gap-2 sm:gap-4">
         {/* Lonceng Notifikasi */}
-        <div ref={dropdownRef}>
+        <div ref={dropdownRef} className="relative">
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
-            className="relative text-slate-500 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 rounded-full"
+            onClick={() => {
+              setIsDropdownOpen(!isDropdownOpen);
+              // Jika izin desktop masih default, minta izin saat klik lonceng
+              if (browserPermission === "default") {
+                requestDesktopPermission();
+              }
+            }} 
+            className="relative text-slate-500 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 rounded-full cursor-pointer"
           >
             <Bell className={`h-5 w-5 ${unreadCount > 0 ? "animate-pulse text-indigo-500" : ""}`} />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white/50 dark:ring-slate-900/50">
+              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white shadow-sm ring-2 ring-white/50 dark:ring-slate-900/50 animate-bounce">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -123,15 +321,57 @@ export default function Header({ user, setIsOpen }) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.95 }}
                 transition={{ duration: 0.2 }}
-                className="absolute right-2 sm:right-6 top-[64px] mt-1 w-[calc(100vw-1rem)] max-w-[320px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/50 dark:border-slate-700/50 shadow-2xl rounded-2xl z-50 overflow-hidden origin-top-right"
+                className="absolute right-0 top-[52px] mt-1 w-[calc(100vw-1.5rem)] sm:w-[360px] max-w-[360px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-2xl rounded-2xl z-50 overflow-hidden origin-top-right"
               >
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-950/50">
-                  <h3 className="font-semibold text-sm text-slate-800 dark:text-slate-200">Notifikasi</h3>
-                  {unreadCount > 0 && (
-                    <button onClick={handleMarkAllAsRead} className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 hover:underline font-medium transition-colors">Tandai semua dibaca</button>
-                  )}
+                {/* Header Dropdown */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100/60 dark:border-slate-800/60 bg-white/60 dark:bg-slate-950/60">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">Notifikasi</h3>
+                    {unreadCount > 0 && (
+                      <span className="px-1.5 py-0.2 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-extrabold">
+                        {unreadCount} baru
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {unreadCount > 0 && (
+                      <button 
+                        onClick={handleMarkAllAsRead} 
+                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 hover:underline font-medium transition-colors cursor-pointer"
+                      >
+                        Tandai dibaca
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
+
+                {/* Banner Status Desktop Push Notification */}
+                <div className="px-4 py-2 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
+                  {browserPermission === "granted" ? (
+                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium text-[11px]">
+                      <ShieldCheck className="w-3.5 h-3.5" /> Desktop Push Aktif
+                    </span>
+                  ) : (
+                    <button
+                      onClick={requestDesktopPermission}
+                      className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-semibold text-[11px] hover:underline cursor-pointer"
+                    >
+                      <Bell className="w-3.5 h-3.5" /> Aktifkan Push Desktop
+                    </button>
+                  )}
+
+                  <button
+                    onClick={handleTestNotification}
+                    title="Uji coba suara dan notifikasi pop-up"
+                    className="flex items-center gap-1 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-[11px] font-semibold bg-white dark:bg-slate-700 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600 shadow-xs cursor-pointer"
+                  >
+                    <Volume2 className="w-3 h-3 text-indigo-500" />
+                    <span>Tes Notifikasi</span>
+                  </button>
+                </div>
+
+                {/* Daftar Notifikasi */}
+                <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100/50 dark:divide-slate-800/50">
                   {notifications.length === 0 ? (
                     <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400 flex flex-col items-center gap-2">
                       <Bell className="h-8 w-8 text-slate-300 dark:text-slate-600" />
@@ -139,15 +379,32 @@ export default function Header({ user, setIsOpen }) {
                     </div>
                   ) : (
                     notifications.map(n => (
-                      <div key={n.id} className={`p-4 border-b border-slate-100/50 dark:border-slate-800/50 hover:bg-white/60 dark:hover:bg-slate-800/60 cursor-pointer flex gap-3 transition-colors ${!n.is_read ? 'bg-indigo-50/40 dark:bg-indigo-900/20' : ''}`} onClick={() => handleNotificationClick(n)}>
-                        <div className={`mt-0.5 ${!n.is_read ? 'text-indigo-500 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                          <CheckCircle2 className="w-5 h-5" />
+                      <div 
+                        key={n.id} 
+                        className={`p-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/60 cursor-pointer flex gap-3 transition-colors ${
+                          !n.is_read ? 'bg-indigo-50/50 dark:bg-indigo-950/30' : ''
+                        }`} 
+                        onClick={() => handleNotificationClick(n)}
+                      >
+                        <div className={`mt-0.5 shrink-0 ${!n.is_read ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                          <CheckCircle2 className="w-4 h-4" />
                         </div>
-                        <div className="flex-1">
-                          <p className={`text-sm leading-snug ${!n.is_read ? 'font-semibold text-slate-900 dark:text-slate-100' : 'font-normal text-slate-500 dark:text-slate-400'}`}>{n.pesan}</p>
-                          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">{new Date(n.created_at).toLocaleString('id-ID')}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs leading-snug break-words ${!n.is_read ? 'font-bold text-slate-900 dark:text-slate-100' : 'font-normal text-slate-600 dark:text-slate-400'}`}>
+                            {n.pesan}
+                          </p>
+                          <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400 dark:text-slate-500">
+                            <span>{new Date(n.created_at).toLocaleString('id-ID')}</span>
+                            {n.laporan_id && (
+                              <span className="text-indigo-500 flex items-center gap-0.5 hover:underline">
+                                Lihat <ExternalLink className="w-2.5 h-2.5" />
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        {!n.is_read && <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>}
+                        {!n.is_read && (
+                          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
+                        )}
                       </div>
                     ))
                   )}
@@ -162,14 +419,16 @@ export default function Header({ user, setIsOpen }) {
           <div className="h-7 w-7 rounded-full bg-orange-100 dark:bg-orange-950/50 text-orange-600 dark:text-orange-400 flex items-center justify-center">
             <User className="h-4 w-4" />
           </div>
-          <span className="capitalize text-slate-700 dark:text-slate-200 hidden sm:inline-block">{user?.username} <span className="text-slate-400 dark:text-slate-500 font-normal">({user?.role})</span></span>
+          <span className="capitalize text-slate-700 dark:text-slate-200 hidden sm:inline-block">
+            {user?.username} <span className="text-slate-400 dark:text-slate-500 font-normal">({user?.role})</span>
+          </span>
         </div>
         <Button 
           variant="ghost" 
           size="icon" 
           onClick={handleLogout} 
           title="Logout" 
-          className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-900/30 rounded-full transition-all duration-300"
+          className="text-slate-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50/50 dark:hover:bg-red-900/30 rounded-full transition-all duration-300 cursor-pointer"
         >
           <LogOut className="h-5 w-5" />
           <span className="sr-only">Logout</span>

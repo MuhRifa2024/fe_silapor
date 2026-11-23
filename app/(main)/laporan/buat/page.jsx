@@ -65,6 +65,9 @@ export default function BuatLaporanPage() {
 
       await createLaporan(formData);
       toast.success("Laporan berhasil dikirim!");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("silapor-notif-refresh"));
+      }
       router.push("/laporan");
       
     } catch (error) {

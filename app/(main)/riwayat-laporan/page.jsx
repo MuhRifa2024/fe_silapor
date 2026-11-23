@@ -233,15 +233,19 @@ function RiwayatLaporanContent() {
             />
           </div>
 
-          <div className="w-44">
+          <div className="w-56">
             <Select value={filterKategori} onValueChange={setFilterKategori}>
               <SelectTrigger className="bg-background border-border h-10 rounded-xl text-xs font-semibold">
-                <SelectValue placeholder="Kategori" />
+                <SelectValue placeholder="Kategori">
+                  {filterKategori === "semua"
+                    ? "Semua Kategori"
+                    : categories.find((c) => String(c.id) === String(filterKategori))?.nama_kategori || filterKategori}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="semua">Semua Kategori</SelectItem>
+                <SelectItem value="semua" label="Semua Kategori">Semua Kategori</SelectItem>
                 {categories.map((c) => (
-                  <SelectItem key={c.id} value={String(c.id)}>
+                  <SelectItem key={c.id} value={String(c.id)} label={c.nama_kategori}>
                     {c.nama_kategori}
                   </SelectItem>
                 ))}
@@ -249,16 +253,20 @@ function RiwayatLaporanContent() {
             </Select>
           </div>
 
-          <div className="w-40">
+          <div className="w-44">
             <Select value={activeRoleTab} onValueChange={setActiveRoleTab}>
               <SelectTrigger className="bg-background border-border h-10 rounded-xl text-xs font-semibold">
-                <SelectValue placeholder="Role Pelapor" />
+                <SelectValue placeholder="Role Pelapor">
+                  {activeRoleTab === "semua"
+                    ? "Semua Role"
+                    : activeRoleTab ? activeRoleTab.charAt(0).toUpperCase() + activeRoleTab.slice(1) : ""}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="semua">Semua Role</SelectItem>
-                <SelectItem value="mahasiswa">Mahasiswa</SelectItem>
-                <SelectItem value="dosen">Dosen</SelectItem>
-                <SelectItem value="staff">Staff</SelectItem>
+                <SelectItem value="semua" label="Semua Role">Semua Role</SelectItem>
+                <SelectItem value="mahasiswa" label="Mahasiswa">Mahasiswa</SelectItem>
+                <SelectItem value="dosen" label="Dosen">Dosen</SelectItem>
+                <SelectItem value="staff" label="Staff">Staff</SelectItem>
               </SelectContent>
             </Select>
           </div>
