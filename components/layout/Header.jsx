@@ -345,100 +345,112 @@ export default function Header({ user, setIsOpen }) {
           {/* Dropdown Notifikasi */}
           <AnimatePresence>
             {isDropdownOpen && (
-              <motion.div 
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="absolute right-0 top-[52px] mt-1 w-[calc(100vw-1.5rem)] sm:w-[360px] max-w-[360px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-2xl rounded-2xl z-50 overflow-hidden origin-top-right"
-              >
-                {/* Header Dropdown */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100/60 dark:border-slate-800/60 bg-white/60 dark:bg-slate-950/60">
-                  <div className="flex items-center gap-1.5">
-                    <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">Notifikasi</h3>
-                    {unreadCount > 0 && (
-                      <span className="px-1.5 py-0.2 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-extrabold">
-                        {unreadCount} baru
-                      </span>
-                    )}
+              <>
+                {/* Mobile Backdrop Overlay */}
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={() => setIsDropdownOpen(false)}
+                  className="fixed inset-0 bg-black/25 backdrop-blur-[1px] z-40 sm:hidden"
+                />
+
+                <motion.div 
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="fixed left-3 right-3 top-[62px] sm:absolute sm:left-auto sm:right-0 sm:top-[52px] mt-1 max-w-[420px] mx-auto sm:mx-0 sm:w-[380px] sm:max-w-[380px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-2xl rounded-2xl z-50 overflow-hidden origin-top sm:origin-top-right"
+                >
+                  {/* Header Dropdown */}
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100/60 dark:border-slate-800/60 bg-white/60 dark:bg-slate-950/60">
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-bold text-sm text-slate-900 dark:text-slate-100">Notifikasi</h3>
+                      {unreadCount > 0 && (
+                        <span className="px-1.5 py-0.2 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-[10px] font-extrabold">
+                          {unreadCount} baru
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {unreadCount > 0 && (
+                        <button 
+                          onClick={handleMarkAllAsRead} 
+                          className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 hover:underline font-medium transition-colors cursor-pointer"
+                        >
+                          Tandai dibaca
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {unreadCount > 0 && (
-                      <button 
-                        onClick={handleMarkAllAsRead} 
-                        className="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 hover:underline font-medium transition-colors cursor-pointer"
+
+                  {/* Banner Status Desktop Push Notification */}
+                  <div className="px-3.5 py-2 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    {browserPermission === "granted" ? (
+                      <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium text-[11px]">
+                        <ShieldCheck className="w-3.5 h-3.5" /> Desktop Push Aktif
+                      </span>
+                    ) : (
+                      <button
+                        onClick={requestDesktopPermission}
+                        className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-semibold text-[11px] hover:underline cursor-pointer"
                       >
-                        Tandai dibaca
+                        <Bell className="w-3.5 h-3.5" /> Aktifkan Push Desktop
                       </button>
                     )}
-                  </div>
-                </div>
 
-                {/* Banner Status Desktop Push Notification */}
-                <div className="px-4 py-2 bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 text-xs">
-                  {browserPermission === "granted" ? (
-                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium text-[11px]">
-                      <ShieldCheck className="w-3.5 h-3.5" /> Desktop Push Aktif
-                    </span>
-                  ) : (
                     <button
-                      onClick={requestDesktopPermission}
-                      className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-semibold text-[11px] hover:underline cursor-pointer"
+                      onClick={handleTestNotification}
+                      title="Uji coba suara dan notifikasi pop-up"
+                      className="flex items-center gap-1 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-[11px] font-semibold bg-white dark:bg-slate-700 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600 shadow-xs cursor-pointer ml-auto sm:ml-0"
                     >
-                      <Bell className="w-3.5 h-3.5" /> Aktifkan Push Desktop
+                      <Volume2 className="w-3 h-3 text-indigo-500" />
+                      <span>Tes Notifikasi</span>
                     </button>
-                  )}
+                  </div>
 
-                  <button
-                    onClick={handleTestNotification}
-                    title="Uji coba suara dan notifikasi pop-up"
-                    className="flex items-center gap-1 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 text-[11px] font-semibold bg-white dark:bg-slate-700 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-600 shadow-xs cursor-pointer"
-                  >
-                    <Volume2 className="w-3 h-3 text-indigo-500" />
-                    <span>Tes Notifikasi</span>
-                  </button>
-                </div>
-
-                {/* Daftar Notifikasi */}
-                <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100/50 dark:divide-slate-800/50">
-                  {notifications.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400 flex flex-col items-center gap-2">
-                      <Bell className="h-8 w-8 text-slate-300 dark:text-slate-600" />
-                      Belum ada notifikasi baru
-                    </div>
-                  ) : (
-                    notifications.map(n => (
-                      <div 
-                        key={n.id} 
-                        className={`p-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/60 cursor-pointer flex gap-3 transition-colors ${
-                          !n.is_read ? 'bg-indigo-50/50 dark:bg-indigo-950/30' : ''
-                        }`} 
-                        onClick={() => handleNotificationClick(n)}
-                      >
-                        <div className={`mt-0.5 shrink-0 ${!n.is_read ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                          <CheckCircle2 className="w-4 h-4" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-xs leading-snug break-words ${!n.is_read ? 'font-bold text-slate-900 dark:text-slate-100' : 'font-normal text-slate-600 dark:text-slate-400'}`}>
-                            {n.pesan}
-                          </p>
-                          <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400 dark:text-slate-500">
-                            <span>{new Date(n.created_at).toLocaleString('id-ID')}</span>
-                            {n.laporan_id && (
-                              <span className="text-indigo-500 flex items-center gap-0.5 hover:underline">
-                                Lihat <ExternalLink className="w-2.5 h-2.5" />
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        {!n.is_read && (
-                          <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
-                        )}
+                  {/* Daftar Notifikasi */}
+                  <div className="max-h-[60vh] sm:max-h-[380px] overflow-y-auto divide-y divide-slate-100/50 dark:divide-slate-800/50">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400 flex flex-col items-center gap-2">
+                        <Bell className="h-8 w-8 text-slate-300 dark:text-slate-600" />
+                        Belum ada notifikasi baru
                       </div>
-                    ))
-                  )}
-                </div>
-              </motion.div>
+                    ) : (
+                      notifications.map(n => (
+                        <div 
+                          key={n.id} 
+                          className={`p-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/60 cursor-pointer flex gap-3 transition-colors ${
+                            !n.is_read ? 'bg-indigo-50/50 dark:bg-indigo-950/30' : ''
+                          }`} 
+                          onClick={() => handleNotificationClick(n)}
+                        >
+                          <div className={`mt-0.5 shrink-0 ${!n.is_read ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                            <CheckCircle2 className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-xs leading-snug break-words ${!n.is_read ? 'font-bold text-slate-900 dark:text-slate-100' : 'font-normal text-slate-600 dark:text-slate-400'}`}>
+                              {n.pesan}
+                            </p>
+                            <div className="flex items-center justify-between mt-1 text-[10px] text-slate-400 dark:text-slate-500">
+                              <span>{new Date(n.created_at).toLocaleString('id-ID')}</span>
+                              {n.laporan_id && (
+                                <span className="text-indigo-500 flex items-center gap-0.5 hover:underline">
+                                  Lihat <ExternalLink className="w-2.5 h-2.5" />
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {!n.is_read && (
+                            <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </motion.div>
+              </>
             )}
           </AnimatePresence>
         </div>
