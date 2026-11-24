@@ -84,10 +84,56 @@ export default function Header({ user, setIsOpen }) {
     } catch (e) {}
   }, []);
 
-  // Meminta izin Notifikasi Desktop secara resmi dengan gesture klik
+  // Kirim notifikasi native OS — via SW jika tersedia, fallback ke Notification API langsung
+  const showPushViaSW = useCallback((title, body, laporanId) => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+
+    // Coba via Service Worker terlebih dahulu (diperlukan untuk mobile)
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready
+        .then((registration) => {
+          if (registration.active) {
+            registration.active.postMessage({
+              type: "SHOW_NOTIFICATION",
+              payload: {
+                title,
+                body,
+                icon: "/dashboard_banner.png",
+                tag: laporanId ? `silapor-laporan-${laporanId}` : "silapor-notif",
+                data: { laporan_id: laporanId },
+              },
+            });
+          } else {
+            // SW belum aktif (first load) — fallback ke Notification API langsung
+            const n = new Notification(title, { body, icon: "/dashboard_banner.png" });
+            if (laporanId) n.onclick = () => { window.focus(); };
+          }
+        })
+        .catch(() => {
+          // SW gagal — fallback ke Notification API langsung
+          try {
+            const n = new Notification(title, { body, icon: "/dashboard_banner.png" });
+            if (laporanId) n.onclick = () => { window.focus(); };
+          } catch (e) {}
+        });
+    } else {
+      // Browser tanpa Service Worker — Notification API langsung (desktop lama)
+      try {
+        const n = new Notification(title, { body, icon: "/dashboard_banner.png" });
+        if (laporanId) n.onclick = () => { window.focus(); };
+      } catch (e) {}
+    }
+  }, []);
+
+  // Meminta izin Notifikasi secara resmi dengan gesture klik
   const requestDesktopPermission = async () => {
-    if (typeof window === "undefined" || !("Notification" in window)) {
-      toast.info("Browser Anda tidak mendukung notifikasi desktop");
+    if (typeof window === "undefined") {
+      toast.info("Browser Anda tidak mendukung notifikasi");
+      return;
+    }
+    if (!("Notification" in window)) {
+      toast.info("Browser Anda tidak mendukung notifikasi");
       return;
     }
     try {
@@ -96,12 +142,11 @@ export default function Header({ user, setIsOpen }) {
       if (perm === "granted") {
         toast.success("Notifikasi push browser berhasil diaktifkan!");
         playNotificationSound();
-        try {
-          new Notification("SiLapor - Siap Menerima Notifikasi", {
-            body: "Notifikasi push desktop aktif untuk akun " + (user?.username || ""),
-            icon: "/dashboard_banner.png"
-          });
-        } catch (e) {}
+        showPushViaSW(
+          "SiLapor - Siap Menerima Notifikasi",
+          "Notifikasi push aktif untuk akun " + (user?.username || ""),
+          null
+        );
       } else if (perm === "denied") {
         toast.warning("Izin notifikasi ditolak di browser. Anda dapat mengaktifkannya di pengaturan browser.");
       }
@@ -113,7 +158,7 @@ export default function Header({ user, setIsOpen }) {
   // Fungsi tes suara dan notifikasi (untuk verifikasi langsung pengguna)
   const handleTestNotification = () => {
     playNotificationSound();
-    toast.info("🔔 Tes Notifikasi Push SiLapor", {
+    toast.info("Tes Notifikasi Push SiLapor", {
       description: "Suara chime dan in-app toast berfungsi normal!",
       duration: 5000,
       action: {
@@ -123,12 +168,7 @@ export default function Header({ user, setIsOpen }) {
     });
 
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-      try {
-        new Notification("SiLapor - Tes Notifikasi", {
-          body: "Push notification desktop berhasil diterima!",
-          icon: "/dashboard_banner.png"
-        });
-      } catch (e) {}
+      showPushViaSW("SiLapor - Tes Notifikasi", "Push notification berhasil diterima!", null);
     }
   };
 
@@ -162,20 +202,9 @@ export default function Header({ user, setIsOpen }) {
               } : undefined,
             });
 
-            // 2. Native Desktop Push Notification
+            // 2. Native OS Push Notification via Service Worker (Android & iOS PWA)
             if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-              try {
-                const nativeNotif = new Notification("SiLapor - Notifikasi Baru", {
-                  body: n.pesan,
-                  icon: "/dashboard_banner.png",
-                });
-                nativeNotif.onclick = () => {
-                  window.focus();
-                  if (n.laporan_id) {
-                    router.push(`/laporan/tracking/${n.laporan_id}`);
-                  }
-                };
-              } catch (err) {}
+              showPushViaSW("SiLapor - Notifikasi Baru", n.pesan, n.laporan_id);
             }
           });
 
@@ -190,7 +219,7 @@ export default function Header({ user, setIsOpen }) {
         console.error("Gagal memuat notifikasi", error);
       }
     }
-  }, [playNotificationSound, router]);
+  }, [playNotificationSound, showPushViaSW, router]);
 
   useEffect(() => {
     // Cek status izin notifikasi saat ini

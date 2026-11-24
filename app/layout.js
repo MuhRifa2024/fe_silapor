@@ -15,9 +15,16 @@ const geistMono = Geist_Mono({
 export const metadata = {
   title: "SiLapor",
   description: "Sistem Pengaduan & Tracking Fasilitas Kampus",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SiLapor",
+  },
 };
 
 import { ThemeProvider } from "@/components/theme-provider";
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 
 export default function RootLayout({ children }) {
   return (
@@ -35,6 +42,7 @@ export default function RootLayout({ children }) {
         >
           {children}
           <Toaster position="top-center" richColors />
+          <ServiceWorkerRegister />
         </ThemeProvider>
       </body>
     </html>
